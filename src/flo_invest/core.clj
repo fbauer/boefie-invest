@@ -20,6 +20,17 @@
                                                  "Income" :incomestatement
                                                  "Key" :keyratios} (parts 1))  :file f})))
 
+(defn- slurp-csv [type struct]
+(parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file))))
+
+(defn- parse-income [income]
+  (for [line income
+        :when (= "Revenue" (first line))]
+    {:annual_sales (* 1e6 (Double/parseDouble (nth line (- (count line) 2) Double/NaN)))}))
+
+(defn- parse-balance [balance] {})
+(defn- parse-keyratios [keyratios] {})
+
 (defn load [file-data]
   (let [balance_dict  {"Total current assets" :current_assets
                        "Total current liabilities" :current_liabilities
@@ -41,10 +52,14 @@
                  :isin ((first file-data) :isin) 
                  }
         file-data-set (set file-data)
-        income     (clojure.set/select #(= (:type %) :incomestatement) file-data-set)
-        balance     (clojure.set/select #(= (:type %) :balancesheet) file-data-set)
-        keyratios     (clojure.set/select #(= (:type %) :keyratios) file-data-set)
+        income (slurp-csv :incomestatement file-data-set)
+        balance (slurp-csv :balancesheet file-data-set)
+        keyratios (slurp-csv :keyratios file-data-set)
         ]
-
-    inputs
-  ))
+    (apply merge (cons inputs
+                       (concat 
+                       (parse-income income)
+                       (parse-balance balance)
+                       (parse-keyratios keyratios)
+                       )))
+    )) 
