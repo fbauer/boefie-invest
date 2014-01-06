@@ -14,7 +14,7 @@
       (is (= 3 (count  (first (vals testdata)))))
       )))
 
-(deftest test_loading_of_hfc_stock
+(deftest test-loading-of-hfc-stock
   (let [testdata "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/"
         input (load [{:isin "US4361061082" :type :balancesheet :file (io/file (str testdata  "US4361061082 Balance Sheet.csv")) }
                      {:isin "US4361061082" :type :incomestatement :file (io/file (str testdata  "US4361061082 Income Statement.csv"))}
@@ -38,6 +38,7 @@
                   :total_assets 10329.0e6,
                   :total_liabilities 4276e6}))))
 
-(deftest  test_data_loads_without_hickups
+(deftest  test-data-loads-without-hickups
   (doseq [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
     (is (not= {} (load (last  testdata))))))
+
