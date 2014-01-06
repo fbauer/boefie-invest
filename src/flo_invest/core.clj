@@ -32,10 +32,7 @@
   ( if (= a_string  "") Double/NaN (Double/parseDouble 
                                     (clojure.string/replace a_string "," "" ))))
 
-(defn- parse-balance [balance] {})
-(defn- parse-keyratios [keyratios] {})
-
-(defn load [file-data]
+(defn- parse-balance [balance]
   (let [balance_dict  {"Total current assets" :current_assets
                        "Total current liabilities" :current_liabilities
                        "Long-term debt" :long_term_debt
@@ -43,7 +40,16 @@
                        "Total assets" :total_assets
                        "Goodwill" :goodwill
                        "Intangible assets" :intangibles
-                       }
+                       }]
+    (for [line balance]
+      (if (contains? balance_dict (line 0)
+                     ) (into {} { (balance_dict (line 0)) (* 1e6 (as-float (last line)))})))
+    ))
+
+(defn- parse-keyratios [keyratios] {})
+
+(defn load [file-data]
+  (let [
         inputs  {:non_redeemable_preferred_stock 0
                  :redeemable_preferred_stock 0
                  :split_bonus_factor 1
