@@ -37,3 +37,7 @@
                   :tangible_book_value 17.57009708737864,
                   :total_assets 10329.0e6,
                   :total_liabilities 4276e6}))))
+
+(deftest  test_data_loads_without_hickups
+  (doseq [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
+    (is (not= {} (load (last  testdata))))))
