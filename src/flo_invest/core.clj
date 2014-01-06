@@ -26,7 +26,7 @@
 (defn- parse-income [income]
   (for [line income
         :when (= "Revenue" (first line))]
-    {:annual_sales (* 1e6 (Double/parseDouble (nth line (- (count line) 2) Double/NaN)))}))
+    {:annual_sales (* 1e6 (Double/parseDouble (nth line (- (count line) 2) "NaN")))}))
 
 (defn- parse-balance [balance] {})
 (defn- parse-keyratios [keyratios] {})
