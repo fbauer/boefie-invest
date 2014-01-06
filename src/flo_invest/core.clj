@@ -1,5 +1,7 @@
 (ns flo-invest.core (:require [clojure.java.io :as io]
-                              [clojure.set :only select]))
+                              [clojure.set :only select])
+    (:use clojure-csv.core)
+    )
 
 (defn parse-dir [datadir]
   (group-by :isin
