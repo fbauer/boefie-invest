@@ -28,6 +28,10 @@
         :when (= "Revenue" (first line))]
     {:annual_sales (* 1e6 (Double/parseDouble (nth line (- (count line) 2) "NaN")))}))
 
+(defn as-float [a_string]
+  ( if (= a_string  "") Double/NaN (Double/parseDouble 
+                                    (clojure.string/replace a_string "," "" ))))
+
 (defn- parse-balance [balance] {})
 (defn- parse-keyratios [keyratios] {})
 

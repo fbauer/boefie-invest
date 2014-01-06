@@ -42,3 +42,7 @@
   (doseq [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
     (is (not= {} (load (last  testdata))))))
 
+(deftest test-as-float
+  (is (= (as-float "1.23") 1.23))
+  (is (= (as-float "1,234.56") 1234.56))
+  (is (Double/isNaN (as-float ""))))
