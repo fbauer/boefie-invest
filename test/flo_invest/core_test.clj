@@ -16,7 +16,7 @@
 
 (deftest test-loading-of-hfc-stock
   (let [testdata "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/"
-        input (load [{:isin "US4361061082" :type :balancesheet :file (io/file (str testdata  "US4361061082 Balance Sheet.csv")) }
+        input (load-data [{:isin "US4361061082" :type :balancesheet :file (io/file (str testdata  "US4361061082 Balance Sheet.csv")) }
                      {:isin "US4361061082" :type :incomestatement :file (io/file (str testdata  "US4361061082 Income Statement.csv"))}
                      {:isin "US4361061082" :type :keyratios :file (io/file (str testdata  "US4361061082 Key Ratios.csv"))}])]
     (is (= input {:isin "US4361061082",
@@ -40,9 +40,10 @@
 
 (deftest  test-data-loads-without-hickups
   (doseq [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
-    (is (not= {} (load (last  testdata))))))
+    (is (not= {} (load-data (last  testdata))))))
 
 (deftest test-as-float
   (is (= (as-float "1.23") 1.23))
   (is (= (as-float "1,234.56") 1234.56))
   (is (Double/isNaN (as-float ""))))
+

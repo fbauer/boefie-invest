@@ -29,8 +29,8 @@
     {:annual_sales (* 1e6 (Double/parseDouble (nth line (- (count line) 2) "NaN")))}))
 
 (defn as-float [a_string]
-  ( if (= a_string  "") Double/NaN (Double/parseDouble 
-                                    (clojure.string/replace a_string "," "" ))))
+  (if (= a_string  "") Double/NaN (Double/parseDouble 
+                                   (clojure.string/replace a_string "," "" ))))
 
 (defn- parse-balance [balance]
   (let [balance_dict  {"Total current assets" :current_assets
@@ -42,17 +42,17 @@
                        "Intangible assets" :intangibles
                        }]
     (for [line balance]
-      (if (contains? balance_dict (line 0)
-                     ) (into {} { (balance_dict (line 0)) (* 1e6 (as-float (last line)))})))
+      (if (contains? balance_dict (line 0))
+        (into {} { (balance_dict (line 0)) (* 1e6 (as-float (last line)))})))
     ))
 
 (defn- parse-keyratios [keyratios] {})
 
-(defn load [file-data]
+(defn load-data [file-data]
   (let [
-        inputs  {:non_redeemable_preferred_stock 0
-                 :redeemable_preferred_stock 0
-                 :split_bonus_factor 1
+        inputs  {:non_redeemable_preferred_stock 0.0
+                 :redeemable_preferred_stock 0.0
+                 :split_bonus_factor 1.0
                  :goodwill Double/NaN
                  :intangibles Double/NaN
                  :annual_sales Double/NaN
@@ -68,8 +68,8 @@
         ]
     (apply merge (cons inputs
                        (concat 
-                       (parse-income income)
-                       (parse-balance balance)
-                       (parse-keyratios keyratios)
-                       )))
+                        (parse-income income)
+                        (parse-balance balance)
+                        (parse-keyratios keyratios)
+                        )))
     )) 
