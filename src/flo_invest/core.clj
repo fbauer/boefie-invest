@@ -21,7 +21,7 @@
                                                  "Key" :keyratios} (parts 1))  :file f})))
 
 (defn- slurp-csv [type struct]
-(parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file))))
+  (parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file))))
 
 (defn- parse-income [income]
   (for [line income
@@ -46,7 +46,27 @@
         (into {} { (balance_dict (line 0)) (* 1e6 (as-float (last line)))})))
     ))
 
-(defn- parse-keyratios [keyratios] {})
+(defn double-vec [line]
+  (vec (map as-float (subvec line 1 (- (count line) 1))))
+  )
+(defn- parse-keyratios [keyratios]
+  (for [line keyratios]
+    (if-let [match (re-matches #"Dividends (\w+)" (first line))]
+      (into {} {:dividends (double-vec line) :currency (last match)})
+      (if-let [match (re-matches #"Earnings Per Share (\w+)" (first line))]
+        (into {} {:eps (double-vec line) :currency (last match)})
+        (if-let [match (re-matches #"Book Value Per Share (\w+)" (first line))]
+          (into {} {:reported_book_value (last (double-vec line)) :currency (last match)})
+          (if-let [match (re-matches #"Shares Mil" (first line))]
+            (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})
+            ))))))
+
+(defn add-tangible-book-value [input-map]
+  (into input-map {:tangible_book_value
+                   (- (input-map :reported_book_value)
+                      (/ (+ (input-map :goodwill) (input-map :intangibles))
+                         (input-map :shares_outstanding)))
+                   }))
 
 (defn load-data [file-data]
   (let [
@@ -59,17 +79,16 @@
                  :current_assets Double/NaN
                  :current_liabilities Double/NaN
                  :long_term_debt Double/NaN
-                 :isin ((first file-data) :isin) 
+                 :isin ((first file-data) :isin)
                  }
         file-data-set (set file-data)
         income (slurp-csv :incomestatement file-data-set)
         balance (slurp-csv :balancesheet file-data-set)
         keyratios (slurp-csv :keyratios file-data-set)
         ]
-    (apply merge (cons inputs
-                       (concat 
-                        (parse-income income)
-                        (parse-balance balance)
-                        (parse-keyratios keyratios)
-                        )))
-    )) 
+    (add-tangible-book-value (apply merge (cons inputs
+                                                 (concat 
+                                                  (parse-income income)
+                                                  (parse-balance balance)
+                                                  (parse-keyratios keyratios)
+                                                  )))))) 
