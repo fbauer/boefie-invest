@@ -4,6 +4,8 @@
             [clojure.test :refer :all]
             [flo-invest.core :refer :all]
             [clojure.java.io :as io]
+            [cheshire.core :refer :all]
+            [cheshire.factory :as factory]
             ))
 
 
@@ -53,3 +55,19 @@
   (is (= (as-float "1,234.56") 1234.56))
   (is (Double/isNaN (as-float ""))))
 
+(defn eq [a b]
+  (cond
+   (and (vector? a) (vector? b)) (map eq a b)
+   (and (number? a) (number? b) (Double/isNaN a) (Double/isNaN b)) true
+   (and (number? a) (number? b)) (== a b)
+   :else (= a b)))
+
+(deftest  compare-with-python-results
+  (let [ py-data ( binding [factory/*json-factory* (factory/make-json-factory
+                                                    {:allow-non-numeric-numbers true})] (parse-stream (clojure.java.io/reader "/home/flo/geldanlage/aktienscreen_2013_10_05/morningstar.json") ))
+        clj-data (vec (for [input (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/" )] (load-data (last input))))
+        py-keys [ :isin :currency :annual_sales :current_assets :current_liabilities :dividends :eps :goodwill :intangibles :long_term_debt :non_redeemable_preferred_stock :redeemable_preferred_stock :reported_book_value :shares_outstanding :split_bonus_factor :tangible_book_value :total_assets :total_liabilities]]
+    (doseq [[py clj] (map list  (sort-by :isin (map #(zipmap py-keys %) py-data)) (sort-by :isin clj-data))
+            key py-keys]
+      (is (eq (py key) (clj key)) (str (py :isin) key)))
+    ))
