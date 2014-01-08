@@ -23,14 +23,14 @@
 (defn- slurp-csv [type struct]
   (parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file))))
 
+(defn as-float [a_string]
+  (if (= a_string  "") Double/NaN
+      (Double/parseDouble (clojure.string/replace a_string "," "" ))))
+
 (defn- parse-income [income]
   (for [line income
         :when (= "Revenue" (first line))]
-    {:annual_sales (* 1e6 (Double/parseDouble (nth line (- (count line) 2) "NaN")))}))
-
-(defn as-float [a_string]
-  (if (= a_string  "") Double/NaN (Double/parseDouble 
-                                   (clojure.string/replace a_string "," "" ))))
+    {:annual_sales (* 1e6 (as-float (nth line (- (count line) 2) "")))}))
 
 (defn- parse-balance [balance]
   (let [balance_dict  {"Total current assets" :current_assets
@@ -73,12 +73,12 @@
         inputs  {:non_redeemable_preferred_stock 0.0
                  :redeemable_preferred_stock 0.0
                  :split_bonus_factor 1.0
-                 :goodwill Double/NaN
-                 :intangibles Double/NaN
-                 :annual_sales Double/NaN
-                 :current_assets Double/NaN
-                 :current_liabilities Double/NaN
-                 :long_term_debt Double/NaN
+                 :goodwill (as-float "")
+                 :intangibles (as-float "")
+                 :annual_sales (as-float "")
+                 :current_assets (as-float "")
+                 :current_liabilities (as-float "")
+                 :long_term_debt (as-float "")
                  :isin ((first file-data) :isin)
                  }
         file-data-set (set file-data)
