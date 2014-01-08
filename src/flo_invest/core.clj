@@ -1,5 +1,6 @@
 (ns flo-invest.core (:require [clojure.java.io :as io]
-                              [clojure.set :only select])
+                              [clojure.set :only select]
+                              [clojurewerkz.money.amounts :as ma])
     (:use clojure-csv.core)
     )
 
@@ -27,10 +28,50 @@
   (if (= a_string  "") Double/NaN
       (Double/parseDouble (clojure.string/replace a_string "," "" ))))
 
+(defn as-money [a_string currency_symbol]
+  (if (= a_string  "") nil
+      (ma/parse (str currency_symbol " " (clojure.string/replace  a_string "," "")))))
+
+(defn plus [a b]
+  (if (or (and (number? a) (Double/isNaN a))
+          (and (number? b) (Double/isNaN b))
+          (nil? a)
+          (nil? b)
+          ) nil
+            (ma/plus a b)))
+
+(defn minus [a b]
+  (if (or (and (number? a) (Double/isNaN a))
+          (and (number? b) (Double/isNaN b))
+          (nil? a)
+          (nil? b)
+          ) nil
+            (ma/minus a b)))
+
+(defn multiply [a b]
+  (if (or (and (number? a) (Double/isNaN a))
+          (and (number? b) (Double/isNaN b))
+          (nil? a)
+          (nil? b)
+          ) nil
+            (ma/multiply a b)))
+
+(defn divide
+  ([a b] (divide a b nil))
+  ([a b rounding-mode]
+      (if (or (and (number? a) (Double/isNaN a))
+              (and (number? b) (Double/isNaN b))
+              (nil? a)
+              (nil? b)
+              ) nil
+                (ma/divide a b rounding-mode))))
+
 (defn- parse-income [income]
   (for [line income
         :when (= "Revenue" (first line))]
-    {:annual_sales (* 1e6 (as-float (nth line (- (count line) 2) "")))}))
+    {:annual_sales (multiply
+                    (as-money (nth line (- (count line) 2) "") "EUR")
+                    1000000)})) ; FIXME
 
 (defn- parse-balance [balance]
   (let [balance_dict  {"Total current assets" :current_assets
@@ -43,29 +84,38 @@
                        }]
     (for [line balance]
       (if (contains? balance_dict (line 0))
-        (into {} { (balance_dict (line 0)) (* 1e6 (as-float (last line)))})))
+        (into {} { (balance_dict (line 0)) (multiply
+                                            (as-money (last line) "EUR")
+                                            1000000)}))) ;FIXME
     ))
 
 (defn double-vec [line]
   (vec (map as-float (subvec line 1 (- (count line) 1))))
   )
+
+(defn money-vec [line currency]
+  (vec (map #(as-money % currency) (subvec line 1 (- (count line) 1))))
+  )
+
 (defn- parse-keyratios [keyratios]
   (for [line keyratios]
     (if-let [match (re-matches #"Dividends (\w+)" (first line))]
-      (into {} {:dividends (double-vec line) :currency (last match)})
+      (into {} {:dividends (money-vec line (last match))
+                :currency (last match)})
       (if-let [match (re-matches #"Earnings Per Share (\w+)" (first line))]
-        (into {} {:eps (double-vec line) :currency (last match)})
+        (into {} {:eps (money-vec line (last match))})
         (if-let [match (re-matches #"Book Value Per Share (\w+)" (first line))]
-          (into {} {:reported_book_value (last (double-vec line)) :currency (last match)})
+          (into {} {:reported_book_value (last (money-vec line (last match)))})
           (if-let [match (re-matches #"Shares Mil" (first line))]
             (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})
             ))))))
 
 (defn add-tangible-book-value [input-map]
   (into input-map {:tangible_book_value
-                   (- (input-map :reported_book_value)
-                      (/ (+ (input-map :goodwill) (input-map :intangibles))
-                         (input-map :shares_outstanding)))
+                   (minus (input-map :reported_book_value)
+                      (divide (plus (input-map :goodwill) (input-map :intangibles))
+                              (input-map :shares_outstanding)
+                              :floor))
                    }))
 
 (defn load-data [file-data]
