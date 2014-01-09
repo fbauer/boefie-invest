@@ -5,10 +5,9 @@
             [flo-invest.core :refer :all]
             [clojure.java.io :as io]
             [cheshire.core :refer :all]
-            [cheshire.factory :as factory]
-            [clojurewerkz.money.amounts    :as ma]
-            [clojurewerkz.money.currencies :as mc]
-            ))
+            [cheshire.factory :as factory])
+  (:import [org.joda.money BigMoney])
+            )
 
 
 
@@ -49,8 +48,9 @@
       )))
 
 (deftest  test-data-loads-without-hickups
-  (doseq [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
-    (is (not= {} (load-data (last  testdata))))))
+  (testing "test that all data files can be loaded"
+    (doseq [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
+      (is (not= {} (load-data (last  testdata))) (first testdata)))))
 
 (deftest test-as-float
   (is (= (as-float "1.23") 1.23))
@@ -58,17 +58,18 @@
   (is (Double/isNaN (as-float ""))))
 
 (deftest test-as-money
-  (is (= (as-money "1.23" "EUR") (ma/amount-of mc/EUR 1.23)))
-  (is (= (as-money "1,234.56" "EUR") (ma/amount-of mc/EUR 1234.56)))
+  (is (= (as-money "1.23" "EUR") (BigMoney/parse "EUR 1.23")))
+  (is (= (as-money "1,234.56" "EUR") (BigMoney/parse "EUR 1234.56")))
+  (is (= (as-money "0.11" "CNY") (BigMoney/parse "CNY 0.11")))
   (is (= (as-money "" "EUR") nil)))
 
 (deftest money-and-nans
   (testing "My own numeric tower that handles nil and NaN as missing values"
     (doseq [func [plus minus multiply divide]]
-      (is (= (func (ma/amount-of mc/EUR 1.23) nil) nil) (str "function: " func))
-      (is (= (func (ma/amount-of mc/EUR 1.23) Double/NaN) nil)(str "function: " func))
-      (is (= (func nil (ma/amount-of mc/EUR 1.23)) nil)(str "function: " func))
-      (is (= (func Double/NaN (ma/amount-of mc/EUR 1.23)) nil))(str "function: " func)
+      (is (= (func (BigMoney/parse "EUR 1.23") nil) nil) (str "function: " func))
+      (is (= (func (BigMoney/parse "EUR 1.23") Double/NaN) nil)(str "function: " func))
+      (is (= (func nil (BigMoney/parse "EUR 1.23")) nil)(str "function: " func))
+      (is (= (func Double/NaN (BigMoney/parse "EUR 1.23")) nil))(str "function: " func)
       )))
 
 (defn eq

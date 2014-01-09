@@ -1,6 +1,8 @@
 (ns flo-invest.core (:require [clojure.java.io :as io]
-                              [clojure.set :only select]
-                              [clojurewerkz.money.amounts :as ma])
+                              [clojure.set :only select])
+    (:import [org.joda.money BigMoney]
+             [java.math RoundingMode])
+                              
     (:use clojure-csv.core)
     )
 
@@ -22,7 +24,7 @@
                                                  "Key" :keyratios} (parts 1))  :file f})))
 
 (defn- slurp-csv [type struct]
-  (parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file))))
+  (vec (parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file)))))
 
 (defn as-float [a_string]
   (if (= a_string  "") Double/NaN
@@ -30,7 +32,7 @@
 
 (defn as-money [a_string currency_symbol]
   (if (= a_string  "") nil
-      (ma/parse (str currency_symbol " " (clojure.string/replace  a_string "," "")))))
+      (BigMoney/parse (str currency_symbol " " (clojure.string/replace  a_string "," "")))))
 
 (defn plus [a b]
   (if (or (and (number? a) (Double/isNaN a))
@@ -38,7 +40,7 @@
           (nil? a)
           (nil? b)
           ) nil
-            (ma/plus a b)))
+            (.plus a b)))
 
 (defn minus [a b]
   (if (or (and (number? a) (Double/isNaN a))
@@ -46,7 +48,7 @@
           (nil? a)
           (nil? b)
           ) nil
-            (ma/minus a b)))
+            (.minus a b)))
 
 (defn multiply [a b]
   (if (or (and (number? a) (Double/isNaN a))
@@ -54,24 +56,24 @@
           (nil? a)
           (nil? b)
           ) nil
-            (ma/multiply a b)))
+            (.multipliedBy a b)))
 
 (defn divide
-  ([a b] (divide a b nil))
-  ([a b rounding-mode]
+  ([a b]
       (if (or (and (number? a) (Double/isNaN a))
               (and (number? b) (Double/isNaN b))
               (nil? a)
               (nil? b)
               ) nil
-                (ma/divide a b rounding-mode))))
+                (.dividedBy a b RoundingMode/HALF_UP))))
 
 (defn- parse-income [income]
-  (for [line income
-        :when (= "Revenue" (first line))]
-    {:annual_sales (multiply
-                    (as-money (nth line (- (count line) 2) "") "EUR")
-                    1000000)})) ; FIXME
+  (let [currency (last (re-matches #"Fiscal year ends in \w+. (\w+) in millions except per share data." (first (income 1))))]
+    (for [line income
+          :when (= "Revenue" (first line))]
+      {:annual_sales (multiply
+                      (as-money (nth line (- (count line) 2) "") currency)
+                      1000000)}))) 
 
 (defn- parse-balance [balance]
   (let [balance_dict  {"Total current assets" :current_assets
@@ -81,12 +83,14 @@
                        "Total assets" :total_assets
                        "Goodwill" :goodwill
                        "Intangible assets" :intangibles
-                       }]
+                       }
+        currency (last (re-matches #"Fiscal year ends in \w+. (\w+) in millions except per share data." (first (balance 1))))]
     (for [line balance]
+
       (if (contains? balance_dict (line 0))
         (into {} { (balance_dict (line 0)) (multiply
-                                            (as-money (last line) "EUR")
-                                            1000000)}))) ;FIXME
+                                            (as-money (last line) currency)
+                                            1000000)})))
     ))
 
 (defn double-vec [line]
@@ -113,9 +117,9 @@
 (defn add-tangible-book-value [input-map]
   (into input-map {:tangible_book_value
                    (minus (input-map :reported_book_value)
-                      (divide (plus (input-map :goodwill) (input-map :intangibles))
-                              (input-map :shares_outstanding)
-                              :floor))
+                          (divide (plus (input-map :goodwill) (input-map :intangibles))
+                                  (input-map :shares_outstanding)
+                                  ))
                    }))
 
 (defn load-data [file-data]
