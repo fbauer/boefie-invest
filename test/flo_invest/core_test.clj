@@ -33,21 +33,21 @@
                   :current_liabilities (as-money "1654000000" "USD")
                   :dividends [(as-money "0.06" "USD")
                               (as-money "0.07" "USD")
-                              (as-money "0.1" "USD")
+                              (as-money "0.10" "USD")
                               (as-money "0.15" "USD")
                               (as-money "0.23" "USD")
-                              (as-money "0.3" "USD")
-                              (as-money "0.3" "USD")
-                              (as-money "0.3" "USD")
+                              (as-money "0.30" "USD")
+                              (as-money "0.30" "USD")
+                              (as-money "0.30" "USD")
                               (as-money "0.34" "USD")
-                              (as-money "0.6" "USD")]
+                              (as-money "0.60" "USD")]
                   :eps [(as-money "0.36" "USD")
                         (as-money "0.65" "USD")
                         (as-money "1.33" "USD")
                         (as-money "2.29" "USD")
                         (as-money "2.99" "USD")
                         (as-money "1.19" "USD")
-                        (as-money "0.2" "USD")
+                        (as-money "0.20" "USD")
                         (as-money "0.97" "USD")
                         (as-money "6.42" "USD")
                         (as-money "8.38" "USD")]
@@ -59,7 +59,7 @@
                   :reported_book_value (as-money "29.74" "USD")
                   :shares_outstanding 206000000.0
                   :split_bonus_factor 1.0
-                  :tangible_book_value (as-money "17.57009708737864" "USD")
+                  :tangible_book_value (as-money "17.5700970874" "USD")
                   :total_assets (as-money "10329000000" "USD")
                   :total_liabilities (as-money "4276000000" "USD")
                   }]
@@ -78,6 +78,8 @@
   (is (Double/isNaN (as-float ""))))
 
 (deftest test-as-money
+  (is (= (as-money "0.3" "USD") (BigMoney/parse "USD 0.3")))
+  (is (= (as-money "0.33" "USD") (BigMoney/parse "USD 0.33")))
   (is (= (as-money "1.23" "EUR") (BigMoney/parse "EUR 1.23")))
   (is (= (as-money "1,234.56" "EUR") (BigMoney/parse "EUR 1234.56")))
   (is (= (as-money "0.11" "CNY") (BigMoney/parse "CNY 0.11")))
