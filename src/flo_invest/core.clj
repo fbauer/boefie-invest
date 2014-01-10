@@ -114,25 +114,29 @@
             (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})
             ))))))
 
+(defn with-scale [bigmoney-or-nil scale]
+  (if (nil? bigmoney-or-nil) nil (.withScale bigmoney-or-nil scale)))
+
 (defn add-tangible-book-value [input-map]
-  (into input-map {:tangible_book_value
-                   (minus (input-map :reported_book_value)
-                          (divide (plus (input-map :goodwill) (input-map :intangibles))
-                                  (input-map :shares_outstanding)
-                                  ))
-                   }))
+  (merge {:tangible_book_value
+          (minus (input-map :reported_book_value)
+                 (divide (plus (with-scale (input-map :goodwill) 10) (input-map :intangibles))
+                         (input-map :shares_outstanding)
+                         ))
+          } input-map))
 
 (defn load-data [file-data]
   (let [
+        missing (as-money "" "EUR")
         inputs  {:non_redeemable_preferred_stock 0.0
                  :redeemable_preferred_stock 0.0
                  :split_bonus_factor 1.0
-                 :goodwill (as-float "")
-                 :intangibles (as-float "")
-                 :annual_sales (as-float "")
-                 :current_assets (as-float "")
-                 :current_liabilities (as-float "")
-                 :long_term_debt (as-float "")
+                 :goodwill missing
+                 :intangibles missing
+                 :annual_sales missing
+                 :current_assets missing
+                 :current_liabilities missing
+                 :long_term_debt missing
                  :isin ((first file-data) :isin)
                  }
         file-data-set (set file-data)

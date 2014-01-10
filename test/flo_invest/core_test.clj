@@ -6,7 +6,8 @@
             [clojure.java.io :as io]
             [cheshire.core :refer :all]
             [cheshire.factory :as factory])
-  (:import [org.joda.money BigMoney])
+  (:import [org.joda.money BigMoney CurrencyUnit]
+           [java.math  RoundingMode])
             )
 
 
@@ -99,7 +100,13 @@
    (and (vector? a) (vector? b)) (cons (= (count a) (count b)) (map eq a b))
    (and (number? a) (number? b) (Double/isNaN a) (Double/isNaN b)) true
    (and (number? a) (number? b)) (== a b)
+   (and (= (class a) BigMoney) (= (class b) BigMoney))(.isEqual (.withScale a 6 RoundingMode/HALF_UP)
+                                                                (.withScale b 6 RoundingMode/HALF_UP)) ;; compare BigMoney to 6 digits after decimal point
    :else (= a b)))
+
+(defn bigmoney [currency amount]
+  (if (Double/isNaN amount) nil 
+      (BigMoney/of (CurrencyUnit/getInstance currency) (double amount))))
 
 (deftest  compare-with-python-results
   (let [py-data (binding [factory/*json-factory*
@@ -108,7 +115,16 @@
                                  "/home/flo/geldanlage/aktienscreen_2013_10_05/morningstar.json")))
         clj-data (vec (for [input (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/" )] (load-data (last input))))
 
-        py-convert (fn [py key] (py key))
+        py-convert (fn [py key] (case key
+                                  :isin (py key)
+                                  :currency (py key)
+                                  :shares_outstanding (py key)
+                                  :non_redeemable_preferred_stock (py key)
+                                  :redeemable_preferred_stock (py key)
+                                  :split_bonus_factor (py key)
+                                  :eps (vec (map #(bigmoney (py :currency) %) (py key)))
+                                  :dividends (vec (map #(bigmoney (py :currency) %) (py key)))
+                                  (bigmoney (py :currency) (py key))))
         py-keys [:isin :currency :annual_sales :current_assets :current_liabilities
                  :dividends :eps :goodwill :intangibles :long_term_debt
                  :non_redeemable_preferred_stock :redeemable_preferred_stock
@@ -118,5 +134,9 @@
         ]
     (doseq [[py clj] (map list (sort-by :isin py-map) (sort-by :isin clj-data))
             key py-keys]
-      (is (eq (py-convert py key) (clj key)) (str (py :isin) key)))
+      (is (eq (py-convert py key) (clj key)) (str (py :isin) " " key " " (py key) " "  (py :reported_book_value) "- (" (py :goodwill) "+" (py :intangibles) ") /" (py :shares_outstanding) "\n"
+                                                  (clj :isin) " " key " " (clj key) " "  (clj :reported_book_value) "- (" (clj :goodwill) "+" (clj :intangibles) ") /" (clj :shares_outstanding) "\n"
+                                                  )))
     ))
+
+
