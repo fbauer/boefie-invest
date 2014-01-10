@@ -133,10 +133,7 @@
         py-map (map #(zipmap py-keys %) py-data)
         ]
     (doseq [[py clj] (map list (sort-by :isin py-map) (sort-by :isin clj-data))
-            key py-keys]
-      (is (eq (py-convert py key) (clj key)) (str (py :isin) " " key " " (py key) " "  (py :reported_book_value) "- (" (py :goodwill) "+" (py :intangibles) ") /" (py :shares_outstanding) "\n"
-                                                  (clj :isin) " " key " " (clj key) " "  (clj :reported_book_value) "- (" (clj :goodwill) "+" (clj :intangibles) ") /" (clj :shares_outstanding) "\n"
-                                                  )))
+            key py-keys] (is (eq (py-convert py key) (clj key)) (str (py :isin) " " key " " (py key))))
     ))
 
 
