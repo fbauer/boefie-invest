@@ -1,14 +1,12 @@
 # flo-invest
 
-A Clojure library designed to ... well, that part is up to you.
+A program to do security analysis following Graham's ideas.
 
 ## Usage
 
-FIXME
+
 
 ## License
 
-Copyright © 2014 FIXME
+Copyright © 2014 Florian Bauer
 
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
