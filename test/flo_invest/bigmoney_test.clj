@@ -14,9 +14,10 @@
 (deftest money-and-nans
   (testing "My own numeric tower that handles nil and NaN as missing values"
     (doseq [func [plus minus multiply divide]]
-      (is (= (func (BigMoney/parse "EUR 1.23") nil) nil) (str "function: " func))
-      (is (= (func (BigMoney/parse "EUR 1.23") Double/NaN) nil)(str "function: " func))
-      (is (= (func nil (BigMoney/parse "EUR 1.23")) nil)(str "function: " func))
-      (is (= (func Double/NaN (BigMoney/parse "EUR 1.23")) nil))(str "function: " func)
-      )))
+      (let [msg (str "function: " func)]
+        (is (= (func (BigMoney/parse "EUR 1.23") nil) nil) msg)
+        (is (= (func (BigMoney/parse "EUR 1.23") Double/NaN) nil) msg)
+        (is (= (func nil (BigMoney/parse "EUR 1.23")) nil) msg)
+        (is (= (func Double/NaN (BigMoney/parse "EUR 1.23")) nil) msg)
+        ))))
 

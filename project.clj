@@ -7,5 +7,7 @@
                  [clojure-csv/clojure-csv "2.0.1"]
                  [cheshire "5.3.0"]
                  [org.joda/joda-money "0.8"]
+                 [org.clojure/java.jdbc "0.2.3"]
+                 [org.xerial/sqlite-jdbc "3.7.2"]
                  ]
   :plugins [[lein-marginalia "0.7.1"]])
