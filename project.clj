@@ -9,5 +9,6 @@
                  [org.joda/joda-money "0.8"]
                  [org.clojure/java.jdbc "0.3.1"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
+                 [clj-time "0.6.0"]
                  ]
   :plugins [[lein-marginalia "0.7.1"]])
