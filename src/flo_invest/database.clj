@@ -39,5 +39,5 @@
 
 (defn db-read-date
   [db-spec read-date]
-  (sql/query db-spec ["Select id, isin, name, max(date_added) as date_added
-from (select * from securities where date_added <= ?) group by isin " read-date  ]))
+  (sql/query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
+from securities where date_added <= ? group by isin " read-date  ]))
