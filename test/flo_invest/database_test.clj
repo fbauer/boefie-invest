@@ -98,3 +98,4 @@
       (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
       (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3}))
       )))
+
