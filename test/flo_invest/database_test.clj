@@ -58,22 +58,22 @@
     ;; Insert security date for ACME 2012-1-1
     ;; Add a new company also called ACME on 2012-5-1
     ;; Rename first ACME to Silly corp on 2013-1-1
-    (let [row1 {:name "ACME corp" :isin "de1234567890" :date_added (date-time 2012 1 1)}
-          row2 {:name "ACME corp"
-                :isin "de1234567891" :date_added (date-time 2012 5 1)}
-          row3 {:name "Silly corp (formerly ACME)"
-                :isin "de1234567890" :date_added (date-time 2013 1 1)}
-          res1 (assoc  row1 :date_added (to-string (row1 :date_added)) :id 1)
-          res2 (assoc  row2 :date_added (to-string (row2 :date_added)) :id 2)
-          res3 (assoc  row3 :date_added (to-string (row3 :date_added)) :id 3)]
-      (add-security test-conn row1)
-      (add-security test-conn row2)
-      (add-security test-conn row3)
+    (let [rows [{:name "ACME corp"
+                 :isin "de1234567890" :date_added (date-time 2012 1 1)}
+                {:name "ACME corp"
+                 :isin "de1234567891" :date_added (date-time 2012 5 1)}
+                {:name "Silly corp (formerly ACME)"
+                 :isin "de1234567890" :date_added (date-time 2013 1 1)}]
+          order [0 1 2]
+          [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
+                             (assoc row :date_added (to-string (row :date_added)) :id num)) 
+          ]
+      (doseq [row (map rows order)] (add-security test-conn row))
       (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
       (is (= (set (db-read-date test-conn (date-time 2011))) #{}))
       (is (= (set (db-read-date test-conn (date-time 2012 2 1))) #{res1}))
       (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
-      (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{ res2 res3}))
+      (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3}))
       )))
 
 (deftest query-date-snapshots-permutated
@@ -81,20 +81,20 @@
     ;; Insert security date for ACME 2012-1-1
     ;; Add a new company also called ACME on 2012-5-1
     ;; Rename first ACME to Silly corp on 2013-1-1
-    (let [row1 {:name "ACME corp" :isin "de1234567890" :date_added (date-time 2012 1 1)}
-          row2 {:name "ACME corp"
-                :isin "de1234567891" :date_added (date-time 2012 5 1)}
-          row3 {:name "Silly corp (formerly ACME)"
-                :isin "de1234567890" :date_added (date-time 2013 1 1)}
-          res1 (assoc  row1 :date_added (to-string (row1 :date_added)) :id 2)
-          res2 (assoc  row2 :date_added (to-string (row2 :date_added)) :id 3)
-          res3 (assoc  row3 :date_added (to-string (row3 :date_added)) :id 1)]
-      (add-security test-conn row3)
-      (add-security test-conn row1)
-      (add-security test-conn row2)
+    (let [rows [{:name "ACME corp"
+                 :isin "de1234567890" :date_added (date-time 2012 1 1)}
+                {:name "ACME corp"
+                 :isin "de1234567891" :date_added (date-time 2012 5 1)}
+                {:name "Silly corp (formerly ACME)"
+                 :isin "de1234567890" :date_added (date-time 2013 1 1)}]
+          order [2 0 1]
+          [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
+                              (assoc row :date_added (to-string (row :date_added)) :id num)) 
+          ]
+      (doseq [row (map rows order)] (add-security test-conn row))
       (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
       (is (= (set (db-read-date test-conn (date-time 2011))) #{}))
       (is (= (set (db-read-date test-conn (date-time 2012 2 1))) #{res1}))
       (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
-      (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{ res2 res3}))
+      (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3}))
       )))
