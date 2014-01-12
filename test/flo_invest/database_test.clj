@@ -4,6 +4,10 @@
             [flo-invest.bigmoney :refer [as-money]]
             [clj-time.core :refer [date-time]]
             [clj-time.coerce :refer [to-string]]
+            [simple-check.core :as sc]
+            [simple-check.generators :as gen]
+            [simple-check.properties :as prop]
+            [simple-check.clojure-test :as ct :refer (defspec)]
             )
   (:import [java.sql BatchUpdateException SQLException]
            [java.util])
@@ -52,50 +56,33 @@
         (is (= result [(assoc  row1 :date_added (to-string (row1 :date_added)) :id 1)])))
       )))
 
+(defn mytest
+  [order]
+  (testing (str  "Test database state. Insert order" order)
+                  ;; Insert security date for ACME 2012-1-1
+                  ;; Add a new company also called ACME on 2012-5-1
+                  ;; Rename first ACME to Silly corp on 2013-1-1
+                  (let [rows [{:name "ACME corp"
+                               :isin "de1234567890" :date_added (date-time 2012 1 1)}
+                              {:name "ACME corp"
+                               :isin "de1234567891" :date_added (date-time 2012 5 1)}
+                              {:name "Silly corp (formerly ACME)"
+                               :isin "de1234567890" :date_added (date-time 2013 1 1)}]
+                        [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
+                                           (assoc row :date_added (to-string (row :date_added)) :id num)) 
+                        ]
+                    (is (= (set (db-read-all test-conn)) #{}) "Sanity check that db is empty. Must never fail.")
+                    (doseq [row (map rows order)] (add-security test-conn row))
+                    (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
+                    (is (= (set (db-read-date test-conn (date-time 2011))) #{}))
+                    (is (= (set (db-read-date test-conn (date-time 2012 2 1))) #{res1}))
+                    (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
+                    (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3}))
+                    )))
 
-(deftest query-date-snapshots
-  (testing "Reading the state of the database at a given time"
-    ;; Insert security date for ACME 2012-1-1
-    ;; Add a new company also called ACME on 2012-5-1
-    ;; Rename first ACME to Silly corp on 2013-1-1
-    (let [rows [{:name "ACME corp"
-                 :isin "de1234567890" :date_added (date-time 2012 1 1)}
-                {:name "ACME corp"
-                 :isin "de1234567891" :date_added (date-time 2012 5 1)}
-                {:name "Silly corp (formerly ACME)"
-                 :isin "de1234567890" :date_added (date-time 2013 1 1)}]
-          order [0 1 2]
-          [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
-                             (assoc row :date_added (to-string (row :date_added)) :id num)) 
-          ]
-      (doseq [row (map rows order)] (add-security test-conn row))
-      (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
-      (is (= (set (db-read-date test-conn (date-time 2011))) #{}))
-      (is (= (set (db-read-date test-conn (date-time 2012 2 1))) #{res1}))
-      (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
-      (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3}))
-      )))
-
-(deftest query-date-snapshots-permutated
-  (testing "Reading the state of the database at a given time"
-    ;; Insert security date for ACME 2012-1-1
-    ;; Add a new company also called ACME on 2012-5-1
-    ;; Rename first ACME to Silly corp on 2013-1-1
-    (let [rows [{:name "ACME corp"
-                 :isin "de1234567890" :date_added (date-time 2012 1 1)}
-                {:name "ACME corp"
-                 :isin "de1234567891" :date_added (date-time 2012 5 1)}
-                {:name "Silly corp (formerly ACME)"
-                 :isin "de1234567890" :date_added (date-time 2013 1 1)}]
-          order [2 0 1]
-          [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
-                              (assoc row :date_added (to-string (row :date_added)) :id num)) 
-          ]
-      (doseq [row (map rows order)] (add-security test-conn row))
-      (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
-      (is (= (set (db-read-date test-conn (date-time 2011))) #{}))
-      (is (= (set (db-read-date test-conn (date-time 2012 2 1))) #{res1}))
-      (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
-      (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3}))
-      )))
-
+(deftest query-date-snapshots-0-1-2 (mytest [0 1 2]))
+(deftest query-date-snapshots-0-2-1 (mytest [0 2 1]))
+(deftest query-date-snapshots-1-0-2 (mytest [1 0 2]))
+(deftest query-date-snapshots-1-2-0 (mytest [1 2 0]))
+(deftest query-date-snapshots-2-0-1 (mytest [2 0 1]))
+(deftest query-date-snapshots-2-1-0 (mytest [2 1 0]))

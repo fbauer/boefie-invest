@@ -10,5 +10,6 @@
                  [org.clojure/java.jdbc "0.3.2"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [clj-time "0.6.0"]
+                 [reiddraper/simple-check "0.5.3"]
                  ]
   :plugins [[lein-marginalia "0.7.1"]])
