@@ -7,6 +7,7 @@
             [simple-check.core :as sc]
             [simple-check.generators :as gen]
             [simple-check.properties :as prop]
+            [clojure.java.jdbc :as sql]
             [simple-check.clojure-test :as ct :refer (defspec)]
             )
   (:import [java.sql BatchUpdateException SQLException]
@@ -15,7 +16,8 @@
 
 (def test-conn {:classname "org.sqlite.JDBC"
                 :subprotocol "sqlite"
-                :subname "testdb.sqlite"})
+                :subname "testdb.sqlite"
+                :foreign_keys 1})
 
 (defn database [f]
   (do
@@ -24,12 +26,16 @@
       (catch BatchUpdateException e) )
     (try (do (init-db test-conn)
              (f))
-         (finally 
-           (kill-db test-conn)))))
+         (finally
+           (try
+             (kill-db test-conn)
+             (catch BatchUpdateException e) )
+           ))))
 
 (use-fixtures :each database)
 
 (deftest test-init-db
+  (is (= (sql/query test-conn ["PRAGMA foreign_keys;"] :transaction? false) '({:foreign_keys 1})))
   (let [row {:name "revenue" :isin "de1234567890" :date_added (date-time 2013 01 01 13 59 12)}]
     (do (add-security test-conn row)
         (let [result (vec (db-read-all test-conn))]
