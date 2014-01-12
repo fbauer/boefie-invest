@@ -7,7 +7,7 @@
                  [clojure-csv/clojure-csv "2.0.1"]
                  [cheshire "5.3.0"]
                  [org.joda/joda-money "0.8"]
-                 [org.clojure/java.jdbc "0.3.1"]
+                 [org.clojure/java.jdbc "0.3.2"]
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [clj-time "0.6.0"]
                  ]
