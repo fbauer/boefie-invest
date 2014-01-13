@@ -11,5 +11,6 @@
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [clj-time "0.6.0"]
                  [reiddraper/simple-check "0.5.3"]
+                 [korma "0.3.0-RC6"]
                  ]
   :plugins [[lein-marginalia "0.7.1"]])
