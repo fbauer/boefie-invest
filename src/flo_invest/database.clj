@@ -82,29 +82,37 @@
   "Create all tables. Assumes that none of the tables exists before.
    Table definitions are taken from the table-definitions var."
   [db-spec]
-  (apply sql/db-do-commands
-         db-spec
-         (for [table-name (keys table-definitions)]
-           (apply sql/create-table-ddl table-name
-                  (table-definitions table-name)))))
+  (sql/with-connection
+    db-spec
+    (doseq [table-name (keys table-definitions)]
+      (apply sql/create-table table-name
+             (table-definitions table-name)))))
 
 (defn kill-db
   "Drop all tables defined in table-definitions."
   [db-spec]
-  (apply sql/db-do-commands
-         db-spec
-         (for [table-name (keys table-definitions)]
-           (sql/drop-table-ddl table-name))))
+  (sql/with-connection
+    db-spec
+    (doseq [table-name (keys table-definitions)]
+      (sql/drop-table table-name))))
 
 (defn add-security [db-spec sec]
-  (do (sql/insert! db-spec :isins {:isin (sec :isin)})
-      (sql/insert! db-spec :securities sec)))
+  (sql/with-connection
+    db-spec
+    (do (sql/insert-record :isins {:isin (sec :isin)})
+        (sql/insert-record :securities sec))))
+
+(defn query
+  [db-spec sql-params]
+  (sql/with-connection
+    db-spec
+    (sql/with-query-results results sql-params (vec results))))
 
 (defn db-read-all
   [db-spec]
-  (sql/query db-spec ["SELECT * FROM securities"]))
+  (query db-spec ["SELECT * FROM securities"]))
 
 (defn db-read-date
   [db-spec read-date]
-  (sql/query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
-from securities where date_added <= ? group by isin " read-date  ]))
+  (query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
+from securities where date_added <= ? group by isin " read-date]))
