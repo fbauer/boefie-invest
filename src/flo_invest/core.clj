@@ -1,6 +1,7 @@
 (ns flo-invest.core (:require [clojure.java.io :as io]
                               [clojure.set :only select]
-                              [flo-invest.bigmoney :refer :all])
+                              [flo-invest.bigmoney :refer :all]
+                              [flo-invest.morningstar])
     (:import [java.math RoundingMode])
     (:use clojure-csv.core)
     )
@@ -37,13 +38,14 @@
   (if (= a_string  "") Double/NaN
       (Double/parseDouble (clojure.string/replace a_string "," "" ))))
 
-(defn- parse-income [income]
-  (let [currency (last (re-matches #"Fiscal year ends in \w+. (\w+) in millions except per share data." (first (income 1))))]
-    (for [line income
-          :when (= "Revenue" (first line))]
-      {:annual_sales (multiply
-                      (as-money (nth line (- (count line) 2) "") currency)
-                      1000000)}))) 
+(defn- parse-income
+  "Legacy function.
+   Uses flo-invest.morningstar/parse-income under the hood, but throws
+   away all newly available information that this function returns.
+  "
+  [income]
+  (if-let [result (last (flo-invest.morningstar/parse-income income))]
+    {:annual_sales (result :amount)})) 
 
 (defn- parse-balance [balance]
   (let [balance_dict  {"Total current assets" :current_assets
