@@ -5,13 +5,21 @@
     (:use clojure-csv.core)
     )
 
-(defn parse-dir [datadir]
+(defn parse-dir
+  "Iterate through the directory datadir and find triples of files
+  with stock information.
+
+  Returns a seq containing triples of maps {:isin :type :file},
+  where :isin is an isin string, :type is one
+  of :balancesheet, :incomestatement or :keyratios and file is a
+  handle to the file.
+  "
+  [datadir]
   (group-by :isin
             (for [f (file-seq (io/file datadir))
                   :let [filename (.getName f)
                         parts (clojure.string/split filename #" ")
-                        isin (parts 0)
-                        ]
+                        isin (parts 0)]
                   :when (and
                          (.endsWith filename ".csv")
                          (= 3 (count parts))
@@ -80,11 +88,14 @@
   (merge {:tangible_book_value
           (minus (input-map :reported_book_value)
                  (divide (plus (with-scale (input-map :goodwill) 10) (input-map :intangibles))
-                         (input-map :shares_outstanding)
-                         ))
+                         (input-map :shares_outstanding)))
           } input-map))
 
-(defn load-data [file-data]
+(defn load-data
+  "Process files as delivered by parse-dir.
+  Returns output in format heavily inspired by the previous python format.
+  "
+  [file-data]
   (let [
         missing (as-money "" "EUR")
         inputs  {:non_redeemable_preferred_stock 0.0
@@ -104,8 +115,7 @@
         keyratios (slurp-csv :keyratios file-data-set)
         ]
     (add-tangible-book-value (apply merge (cons inputs
-                                                 (concat 
-                                                  (parse-income income)
-                                                  (parse-balance balance)
-                                                  (parse-keyratios keyratios)
-                                                  )))))) 
+                                                (concat 
+                                                 (parse-income income)
+                                                 (parse-balance balance)
+                                                 (parse-keyratios keyratios))))))) 
