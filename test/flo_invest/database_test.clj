@@ -44,13 +44,16 @@
         )))
 
 (deftest test-constraints
+  "It is not allowed to leave out either one of name, isin or
+date_added when adding a new security to the database"
   (are [row] (thrown? SQLException (add-security test-conn row))
        {:name "revenue"}
-       {:isin "de1234567890"}))
+       {:isin "de1234567890"}
+       {:name "revenue" :isin "de1234567890"}))
 
 (deftest test-db-empty
-  (testing "loading test data succeeds"
-    (is (= (db-read-all test-conn) []))))
+  "loading test data succeeds"
+  (is (= (db-read-all test-conn) [])))
 
 (deftest uniqueness-constraint
   (testing "can't insert a row that only differs in the date added"
@@ -59,32 +62,30 @@
       (add-security test-conn row1)
       (add-security test-conn row2)
       (let [result (vec (db-read-all test-conn))]
-        (is (= result [(assoc  row1 :date_added (to-string (row1 :date_added)) :id 1)])))
-      )))
+        (is (= result [(assoc row1 :date_added (to-string (row1 :date_added)) :id 1)]))))))
 
 (defn mytest
   [order]
   (testing (str  "Test database state. Insert order" order)
-                  ;; Insert security date for ACME 2012-1-1
-                  ;; Add a new company also called ACME on 2012-5-1
-                  ;; Rename first ACME to Silly corp on 2013-1-1
-                  (let [rows [{:name "ACME corp"
-                               :isin "de1234567890" :date_added (date-time 2012 1 1)}
-                              {:name "ACME corp"
-                               :isin "de1234567891" :date_added (date-time 2012 5 1)}
-                              {:name "Silly corp (formerly ACME)"
-                               :isin "de1234567890" :date_added (date-time 2013 1 1)}]
-                        [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
-                                           (assoc row :date_added (to-string (row :date_added)) :id num)) 
-                        ]
-                    (is (= (set (db-read-all test-conn)) #{}) "Sanity check that db is empty. Must never fail.")
-                    (doseq [row (map rows order)] (add-security test-conn row))
-                    (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
-                    (is (= (set (db-read-date test-conn (date-time 2011))) #{}))
-                    (is (= (set (db-read-date test-conn (date-time 2012 2 1))) #{res1}))
-                    (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
-                    (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3}))
-                    )))
+    ;; Insert security date for ACME 2012-1-1
+    ;; Add a new company also called ACME on 2012-5-1
+    ;; Rename first ACME to Silly corp on 2013-1-1
+    (let [rows [{:name "ACME corp"
+                 :isin "de1234567890" :date_added (date-time 2012 1 1)}
+                {:name "ACME corp"
+                 :isin "de1234567891" :date_added (date-time 2012 5 1)}
+                {:name "Silly corp (formerly ACME)"
+                 :isin "de1234567890" :date_added (date-time 2013 1 1)}]
+          [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
+                             (assoc row :date_added (to-string (row :date_added)) :id num)) 
+          ]
+      (is (= (set (db-read-all test-conn)) #{}) "Sanity check that db is empty. Must never fail.")
+      (doseq [row (map rows order)] (add-security test-conn row))
+      (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
+      (is (= (set (db-read-date test-conn (date-time 2011))) #{}))
+      (is (= (set (db-read-date test-conn (date-time 2012 2 1))) #{res1}))
+      (is (= (set (db-read-date test-conn (date-time 2012 6 1))) #{res1 res2}))
+      (is (= (set (db-read-date test-conn (date-time 2013 6 1))) #{res2 res3})))))
 
 (deftest query-date-snapshots-0-1-2 (mytest [0 1 2]))
 (deftest query-date-snapshots-0-2-1 (mytest [0 2 1]))
