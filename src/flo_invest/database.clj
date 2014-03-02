@@ -1,6 +1,7 @@
 
 (ns flo-invest.database
-  (:require [clojure.java.jdbc :as sql]))
+  (:require [clojure.java.jdbc :as sql]
+            [korma.core :refer :all]))
 
 (def db
   {:classname "org.sqlite.JDBC"
@@ -102,6 +103,12 @@
     (do (sql/insert-record :isins {:isin (sec :isin)})
         (sql/insert-record :securities sec))))
 
+(defentity isins
+  (pk :isin))
+
+(defentity securities
+  (has-one isins))
+
 (defn query
   [db-spec sql-params]
   (sql/with-connection
@@ -116,3 +123,4 @@
   [db-spec read-date]
   (query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
 from securities where date_added <= ? group by isin " read-date]))
+

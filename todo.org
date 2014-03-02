@@ -1,0 +1,26 @@
+* Porting from first python solution to clojure [%]
+** The old way
+All data and scripts are stored in 
+/home/flo/geldanlage/aktienscreen_2013_10_05
+
+1. Download current data from morningstar website by running
+   python download_reports.py symbols.csv
+2. Move csv data to new directory 
+   mkdir data/morningstar/MM_DD_YYY
+   mv data/morningstar/*.csv data/morningstar/MM_DD_YYY
+3. Patch reporting script to use newest data to generate the report
+   Adapt directory constant in morningstar_scraper.py to point to
+   newest data dir.
+4. Run python morningstar_scraper.py
+   A new morningstar.json is generated.
+5. Patch exchange rates in graham_enterprising.py
+6. Run python graham_enterprising.py morningstar.json > enterprising_results.txt
+
+** Limitations of the old way
+- Manual patching of directories, exchange rates etc.
+- The scripts choke on csv files that contain info in multiple
+  currencies.
+
+** Strategy for the new clojure way[50%]
+*** DONE Re-build functionality in morningstar_scraper.py
+*** TODO Store info in database
