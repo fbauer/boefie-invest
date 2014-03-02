@@ -1,12 +1,15 @@
 (ns flo-invest.morningstar
   (:require [flo-invest.bigmoney :refer :all]
             [clj-time.core :refer [date-time]]
+            [clj-time.format :refer [parse formatters]]
             [clj-time.coerce :refer [from-string]])
   (:import [java.math RoundingMode]))
 
 (defn annual_sales
   [millions]
   (multiply millions 1000000))
+
+(def yyyy-mm (formatters :year-month))
 
 (defn date-vec [csv-record]
   (vec (map from-string (subvec csv-record 1 (- (count csv-record) 1)))))
@@ -19,5 +22,5 @@
       {:name :annual_sales
        :amount (annual_sales
                 (as-money (nth line (- (count line) 2) "") currency))
-       :date (from-string "2012-12-12")}))) 
+       :date (parse yyyy-mm "2012-12")}))) 
 
