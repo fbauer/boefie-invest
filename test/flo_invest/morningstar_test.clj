@@ -29,7 +29,7 @@
             ]))))
 
 
-(deftest test-parse-income-good-doc
+(deftest test-parse-income-bad-doc
   (let [sample-input [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
                       ["Fiscal year ends in December. GBP in millions except per share data."
                        "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]

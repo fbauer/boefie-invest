@@ -24,6 +24,28 @@
   [predicate coll]
   (first (filter predicate coll)))
 
+(defn parse-morningstar
+  [balance keys-to-symbol]
+  (let [date-header (date-vec (balance 1))
+        year-currency-pat #"Fiscal year ends in \w+. (\w+) in millions except per share data."
+        currency (last (re-matches year-currency-pat (first (balance 1))))]
+    (flatten (for [record balance
+                         :when (and (> (count record) 2)
+                                    (contains? keys-to-symbol (record 0)))
+                         ]
+                     (map #(assoc {} :name (keys-to-symbol ( record 0)) :amount (annual_sales %1) :date %2)
+                          (money-vec record currency) date-header)))))
+
+(defn parse-balance
+  [balance]
+  (parse-morningstar balance {"Total current assets" :current_assets
+                              "Total current liabilities" :current_liabilities
+                              "Long-term debt" :long_term_debt
+                              "Total liabilities" :total_liabilities
+                              "Total assets" :total_assets
+                              "Goodwill" :goodwill
+                              "Intangible assets" :intangibles}))
+
 (defn parse-income
   "Parse an income statement as issued by Morningstar.
 
@@ -33,12 +55,4 @@
   :annual_sales, and :amount and :date give the revenue for a given
   year."
   [income]
-  (let [date-header (date-vec (income 1))
-        year-currency-pat #"Fiscal year ends in \w+. (\w+) in millions except per share data."
-        currency (last (re-matches year-currency-pat (first (income 1))))
-        revenue-record  (find-first #(= "Revenue" (first %)) income)]
-    (if (< (count revenue-record) 2) []
-        (map #(assoc {} :name :annual_sales
-                     :amount (annual_sales %1)
-                     :date %2) (money-vec revenue-record currency) date-header))))
-
+  (parse-morningstar income {"Revenue" :annual_sales}))
