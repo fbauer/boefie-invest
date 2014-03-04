@@ -24,8 +24,15 @@
   [predicate coll]
   (first (filter predicate coll)))
 
-(defn parse-income [income]
+(defn parse-income
+  "Parse an income statement as issued by Morningstar.
 
+  Look for the header line which specifies the currency and the end of
+  the fiscal years (usual 5 years). Then go and find the Revenue line.
+  Return a vector of maps {:name :amount :date}, where :name is always
+  :annual_sales, and :amount and :date give the revenue for a given
+  year."
+  [income]
   (let [date-header (date-vec (income 1))
         year-currency-pat #"Fiscal year ends in \w+. (\w+) in millions except per share data."
         currency (last (re-matches year-currency-pat (first (income 1))))
