@@ -48,22 +48,8 @@
     {:annual_sales (result :amount)})) 
 
 (defn- parse-balance [balance]
-  (let [balance_dict  {"Total current assets" :current_assets
-                       "Total current liabilities" :current_liabilities
-                       "Long-term debt" :long_term_debt
-                       "Total liabilities" :total_liabilities
-                       "Total assets" :total_assets
-                       "Goodwill" :goodwill
-                       "Intangible assets" :intangibles
-                       }
-        currency (last (re-matches #"Fiscal year ends in \w+. (\w+) in millions except per share data." (first (balance 1))))]
-    (for [line balance]
-
-      (if (contains? balance_dict (line 0))
-        (into {} { (balance_dict (line 0)) (multiply
-                                            (as-money (last line) currency)
-                                            1000000)})))
-    ))
+  (apply merge (for [item (flo-invest.morningstar/parse-balance  balance)]
+                 {(item :name) (item :amount)})))
 
 (defn double-vec [line]
   (vec (map as-float (subvec line 1 (- (count line) 1))))

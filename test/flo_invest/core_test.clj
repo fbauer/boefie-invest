@@ -10,19 +10,24 @@
            [java.math  RoundingMode])
   )
 
+(def data-dir
+  "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")
 
 (deftest test-data-available
-  (let  [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
+  (let [testdata (parse-dir data-dir)]
     (testing "loading test data succeeds"
       (is (not= testdata []))
-      (is (= 3 (count  (first (vals testdata)))))
-      )))
+      (is (= 3 (count  (first (vals testdata))))))))
 
 (deftest test-loading-of-hfc-stock
-  (let [testdata "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/"
-        input (load-data [{:isin "US4361061082" :type :balancesheet :file (io/file (str testdata  "US4361061082 Balance Sheet.csv")) }
-                          {:isin "US4361061082" :type :incomestatement :file (io/file (str testdata  "US4361061082 Income Statement.csv"))}
-                          {:isin "US4361061082" :type :keyratios :file (io/file (str testdata  "US4361061082 Key Ratios.csv"))}])
+  (let [testdata data-dir
+        my-file (fn [filename] (io/file (str testdata filename)))
+        input (load-data [{:isin "US4361061082" :type :balancesheet
+                           :file (my-file  "US4361061082 Balance Sheet.csv")}
+                          {:isin "US4361061082" :type :incomestatement
+                           :file (my-file "US4361061082 Income Statement.csv")}
+                          {:isin "US4361061082" :type :keyratios
+                           :file (my-file "US4361061082 Key Ratios.csv")}])
 
         expected {:isin "US4361061082"
                   :annual_sales (as-money "20091000000" "USD")
@@ -62,12 +67,11 @@
                   :total_liabilities (as-money "4276000000" "USD")
                   }]
     (testing "Result from calling load-data is as expected"
-      (is (= (diff input expected)  [nil nil expected]))
-      )))
+      (is (= input expected)))))
 
 (deftest  test-data-loads-without-hickups
   (testing "test that all data files can be loaded"
-    (doseq [testdata (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")]
+    (doseq [testdata (parse-dir data-dir)]
       (is (not= {} (load-data (last  testdata))) (first testdata)))))
 
 (deftest test-as-float
@@ -80,11 +84,16 @@
   includes NaNs."
   [a b]
   (cond
-   (and (vector? a) (vector? b)) (cons (= (count a) (count b)) (map eq a b))
-   (and (number? a) (number? b) (Double/isNaN a) (Double/isNaN b)) true
-   (and (number? a) (number? b)) (== a b)
-   (and (= (class a) BigMoney) (= (class b) BigMoney))(.isEqual (.withScale a 6 RoundingMode/HALF_UP)
-                                                                (.withScale b 6 RoundingMode/HALF_UP)) ;; compare BigMoney to 6 digits after decimal point
+   (and (vector? a) (vector? b))
+   (cons (= (count a) (count b)) (map eq a b))
+   (and (number? a) (number? b) (Double/isNaN a) (Double/isNaN b))
+   true
+   (and (number? a) (number? b))
+   (== a b)
+   (and (= (class a) BigMoney) (= (class b) BigMoney))
+   ;; compare BigMoney to 6 digits after decimal point
+   (.isEqual (.withScale a 6 RoundingMode/HALF_UP)
+             (.withScale b 6 RoundingMode/HALF_UP))
    :else (= a b)))
 
 (defn bigmoney [currency amount]
@@ -96,7 +105,7 @@
                           (factory/make-json-factory {:allow-non-numeric-numbers true})]
                   (parse-stream (clojure.java.io/reader
                                  "/home/flo/geldanlage/aktienscreen_2013_10_05/morningstar.json")))
-        clj-data (vec (for [input (parse-dir "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/" )] (load-data (last input))))
+        clj-data (vec (for [input (parse-dir data-dir )] (load-data (last input))))
 
         py-convert (fn [py key] (case key
                                   :isin (py key)
