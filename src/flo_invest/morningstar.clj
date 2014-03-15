@@ -32,8 +32,12 @@
     (flatten (for [record balance
                    :when (and (> (count record) 2)
                               (contains? keys-to-symbol (record 0)))]
-               (map #(assoc {} :name (keys-to-symbol (record 0)) :amount (annual_sales %1) :date %2)
-                    (money-vec (extract record) currency) date-header)))))
+               (filter #(not (nil? (:amount %)))
+                       (map #(assoc {}
+                               :name (keys-to-symbol (record 0))
+                               :amount (annual_sales %1)
+                               :date %2)
+                            (money-vec (extract record) currency) date-header))))))
 
 (defn parse-balance
   [balance]
