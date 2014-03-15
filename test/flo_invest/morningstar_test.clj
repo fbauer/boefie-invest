@@ -27,8 +27,7 @@
              :date (date-time 2011 12 01)}
             {:name :annual_sales
              :amount (as-money "1836000000" "EUR")
-             :date (date-time 2012 12 01)}
-            ]))))
+             :date (date-time 2012 12 01)}]))))
 
 
 (deftest test-parse-income-bad-doc
@@ -40,139 +39,52 @@
 
 (deftest test-parse-balance-good-doc
   (let [sample-input [["OMV AG  (OMV) CashFlowFlag BALANCE SHEET"]
-                      ["Fiscal year ends in December. EUR in millions except per share data." "2008-12" "2009-12" "2010-12"]
-                      ["Total current assets" "5884" "5622" "7544"]
-                      ["Intangible assets" "807" "812" "3093"]
-                      ["Total assets" "21376" "21415" "26404"]
-                      ["Total current liabilities" "5816" "4732" "6220"]
-                      ["Long-term debt" "2526" "3197" "5005"]
-
-                      ["Total liabilities" "12013" "11380" "15092"]
-                      ]
+                      ["Fiscal year ends in December. EUR in millions except per share data."
+                       "2008-12" "2009-12"]
+                      ["Total current assets" "5884" "5622"]
+                      ["Intangible assets" "807" "812"]
+                      ["Total assets" "21376" "21415"]
+                      ["Total current liabilities" "5816" "4732"]
+                      ["Long-term debt" "2526" "3197"]
+                      ["Total liabilities" "12013" "11380"]]
         result (parse-balance sample-input)]
-    (is (= (count result) 18))
+    (is (= (count result) 12))
     (is (= result
-           [{:amount (as-money "5884000000" "EUR"),
-             :date (date-time 2008 12 01),
+           [{:amount (as-money "5884000000" "EUR")
+             :date (date-time 2008 12 01)
              :name :current_assets}
-            {:amount (as-money "5622000000" "EUR"),
-             :date (date-time 2009 12 01),
+            {:amount (as-money "5622000000" "EUR")
+             :date (date-time 2009 12 01)
              :name :current_assets}
-            {:amount (as-money "7544000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :current_assets}
-            {:amount (as-money "807000000" "EUR"),
-             :date (date-time 2008 12 01),
+            {:amount (as-money "807000000" "EUR")
+             :date (date-time 2008 12 01)
              :name :intangibles}
-            {:amount (as-money "812000000" "EUR"),
-             :date (date-time 2009 12 01),
+            {:amount (as-money "812000000" "EUR")
+             :date (date-time 2009 12 01)
              :name :intangibles}
-            {:amount (as-money "3093000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :intangibles}
-            {:amount (as-money "21376000000" "EUR"),
-             :date (date-time 2008 12 01),
+            {:amount (as-money "21376000000" "EUR")
+             :date (date-time 2008 12 01)
              :name :total_assets}
-            {:amount (as-money "21415000000" "EUR"),
-             :date (date-time 2009 12 01),
+            {:amount (as-money "21415000000" "EUR")
+             :date (date-time 2009 12 01)
              :name :total_assets}
-            {:amount (as-money "26404000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :total_assets}
-            {:amount (as-money "5816000000" "EUR"),
-             :date (date-time 2008 12 01),
+            {:amount (as-money "5816000000" "EUR")
+             :date (date-time 2008 12 01)
              :name :current_liabilities}
-            {:amount (as-money "4732000000" "EUR"),
-             :date (date-time 2009 12 01),
+            {:amount (as-money "4732000000" "EUR")
+             :date (date-time 2009 12 01)
              :name :current_liabilities}
-            {:amount (as-money "6220000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :current_liabilities}
-            {:amount (as-money "2526000000" "EUR"),
-             :date (date-time 2008 12 01),
+            {:amount (as-money "2526000000" "EUR")
+             :date (date-time 2008 12 01)
              :name :long_term_debt}
-            {:amount (as-money "3197000000" "EUR"),
-             :date (date-time 2009 12 01),
+            {:amount (as-money "3197000000" "EUR")
+             :date (date-time 2009 12 01)
              :name :long_term_debt}
-            {:amount (as-money "5005000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :long_term_debt}
-            {:amount (as-money "12013000000" "EUR"),
-             :date (date-time 2008 12 01),
+            {:amount (as-money "12013000000" "EUR")
+             :date (date-time 2008 12 01)
              :name :total_liabilities}
-            {:amount (as-money "11380000000" "EUR"),
-             :date (date-time 2009 12 01),
-             :name :total_liabilities}
-            {:amount (as-money "15092000000" "EUR"),
-             :date (date-time 2010 12 01),
+            {:amount (as-money "11380000000" "EUR")
+             :date (date-time 2009 12 01)
              :name :total_liabilities}]))))
 
-(deftest test-parse-balance-good-doc2
-  (let [sample-input [["OMV AG  (OMV) CashFlowFlag BALANCE SHEET"]
-                      ["Fiscal year ends in December. EUR in millions except per share data." "2008-12" "2009-12" "2010-12"]
-                      ["Total current assets" "5884" "5622" "7544"]
-                      ["Intangible assets" "807" "812" "3093"]
-                      ["Total assets" "21376" "21415" "26404"]
-                      ["Total current liabilities" "5816" "4732" "6220"]
-                      ["Long-term debt" "2526" "3197" "5005"]
-
-                      ["Total liabilities" "12013" "11380" "15092"]
-                      ]
-        result (parse-balance sample-input)]
-    (is (= (count result) 18))
-    (is (= result
-           [{:amount (as-money "5884000000" "EUR"),
-             :date (date-time 2008 12 01),
-             :name :current_assets}
-            {:amount (as-money "5622000000" "EUR"),
-             :date (date-time 2009 12 01),
-             :name :current_assets}
-            {:amount (as-money "7544000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :current_assets}
-            {:amount (as-money "807000000" "EUR"),
-             :date (date-time 2008 12 01),
-             :name :intangibles}
-            {:amount (as-money "812000000" "EUR"),
-             :date (date-time 2009 12 01),
-             :name :intangibles}
-            {:amount (as-money "3093000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :intangibles}
-            {:amount (as-money "21376000000" "EUR"),
-             :date (date-time 2008 12 01),
-             :name :total_assets}
-            {:amount (as-money "21415000000" "EUR"),
-             :date (date-time 2009 12 01),
-             :name :total_assets}
-            {:amount (as-money "26404000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :total_assets}
-            {:amount (as-money "5816000000" "EUR"),
-             :date (date-time 2008 12 01),
-             :name :current_liabilities}
-            {:amount (as-money "4732000000" "EUR"),
-             :date (date-time 2009 12 01),
-             :name :current_liabilities}
-            {:amount (as-money "6220000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :current_liabilities}
-            {:amount (as-money "2526000000" "EUR"),
-             :date (date-time 2008 12 01),
-             :name :long_term_debt}
-            {:amount (as-money "3197000000" "EUR"),
-             :date (date-time 2009 12 01),
-             :name :long_term_debt}
-            {:amount (as-money "5005000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :long_term_debt}
-            {:amount (as-money "12013000000" "EUR"),
-             :date (date-time 2008 12 01),
-             :name :total_liabilities}
-            {:amount (as-money "11380000000" "EUR"),
-             :date (date-time 2009 12 01),
-             :name :total_liabilities}
-            {:amount (as-money "15092000000" "EUR"),
-             :date (date-time 2010 12 01),
-             :name :total_liabilities}]))))
 

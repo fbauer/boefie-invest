@@ -30,11 +30,10 @@
         year-currency-pat #"Fiscal year ends in \w+. (\w+) in millions except per share data."
         currency (last (re-matches year-currency-pat (first (balance 1))))]
     (flatten (for [record balance
-                         :when (and (> (count record) 2)
-                                    (contains? keys-to-symbol (record 0)))
-                         ]
-                     (map #(assoc {} :name (keys-to-symbol (record 0)) :amount (annual_sales %1) :date %2)
-                          (money-vec (extract record) currency) date-header)))))
+                   :when (and (> (count record) 2)
+                              (contains? keys-to-symbol (record 0)))]
+               (map #(assoc {} :name (keys-to-symbol (record 0)) :amount (annual_sales %1) :date %2)
+                    (money-vec (extract record) currency) date-header)))))
 
 (defn parse-balance
   [balance]
@@ -51,7 +50,7 @@
   "Parse an income statement as issued by Morningstar.
 
   Look for the header line which specifies the currency and the end of
-  the fiscal years (usual 5 years). Then go and find the Revenue line.
+  the fiscal years (usually 5 years). Then go and find the Revenue line.
   Return a vector of maps {:name :amount :date}, where :name is always
   :annual_sales, and :amount and :date give the revenue for a given
   year."
