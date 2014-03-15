@@ -29,13 +29,33 @@
              :amount (as-money "1836000000" "EUR")
              :date (date-time 2012 12 01)}]))))
 
-
-(deftest test-parse-income-bad-doc
-  (let [sample-input [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
-                      ["Fiscal year ends in December. GBP in millions except per share data."
-                       "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
-                      ["Revenue"]]]
-    (is (= (parse-income sample-input) []))))
+(deftest test-parse-income-corner-cases
+  (are [sample-input expected] (= (parse-income sample-input) expected)
+       ;; Truncated "Revenue" record
+       [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
+        ["Fiscal year ends in December. GBP in millions except per share data."
+         "2008-12" "TTM"]
+        ["Revenue"]]
+       []
+       ;; No "Revenue" record
+       [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
+        ["Fiscal year ends in December. GBP in millions except per share data."
+         "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]]
+       []
+       ;; Empty "Revenue" items  
+       [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
+        ["Fiscal year ends in December. GBP in millions except per share data."
+         "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
+        ["Revenue" "" "" "" "" "" ""]]
+       []
+       ;; Missing "Revenue" items  
+       [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
+        ["Fiscal year ends in December. GBP in millions except per share data."
+         "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
+        ["Revenue" "" "23" "" "" "" ""]]
+       [{:name :annual_sales
+         :amount (as-money "23000000" "GBP")
+         :date (date-time 2009 12 01)}]))
 
 (deftest test-parse-balance-good-doc
   (let [sample-input [["OMV AG  (OMV) CashFlowFlag BALANCE SHEET"]
@@ -86,5 +106,3 @@
             {:amount (as-money "11380000000" "EUR")
              :date (date-time 2009 12 01)
              :name :total_liabilities}]))))
-
-
