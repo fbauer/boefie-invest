@@ -25,11 +25,11 @@
   (first (filter predicate coll)))
 
 (defn parse-morningstar
-  [balance extract keys-to-symbol]
-  (let [date-header (date-vec (extract (balance 1)))
+  [rows extract keys-to-symbol]
+  (let [date-header (date-vec (extract (rows 1)))
         year-currency-pat #"Fiscal year ends in \w+. (\w+) in millions except per share data."
-        currency (last (re-matches year-currency-pat (first (balance 1))))]
-    (flatten (for [record balance
+        currency (last (re-matches year-currency-pat (first (rows 1))))]
+    (flatten (for [record rows
                    :when (and (> (count record) 2)
                               (contains? keys-to-symbol (record 0)))]
                (filter #(not (nil? (:amount %)))
@@ -75,7 +75,7 @@
 (defn double-vec
   "Legacy function"
   [line]
-  (vec (map as-float (subvec line 1 (- (count line) 1)))))
+  (vec (map as-float line)))
 
 (defn legacy-money-vec
   "Legacy function"
@@ -83,15 +83,31 @@
   (vec (map #(as-money % currency) (subvec line 1 (- (count line) 1)))))
 
 (defn parse-keyratios
-  "Legacy function"
-  [keyratios]
-  (for [line keyratios]
-    (if-let [match (re-matches #"Dividends (\w+)" (first line))]
-      (into {} {:dividends (legacy-money-vec line (last match))
-                :currency (last match)})
-      (if-let [match (re-matches #"Earnings Per Share (\w+)" (first line))]
-        (into {} {:eps (legacy-money-vec line (last match))})
-        (if-let [match (re-matches #"Book Value Per Share (\w+)" (first line))]
-          (into {} {:reported_book_value (last (legacy-money-vec line (last match)))})
-          (if-let [match (re-matches #"Shares Mil" (first line))]
-            (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})))))))
+  "Parse a key ratios csv file as issued by Morningstar.
+
+  Return a vector of maps {:name :amount :date}, where :name is one of
+  the symbols :dividends, :eps, :reported_book_value, or
+  :shares_outstanding. :amount and :date give the revenue for a given
+  year."
+  [rows]
+  (let [extract #(subvec % 1 (- (count %) 1))
+        regex #"(Earnings Per Share|Book Value Per Share|Dividends|Shares Mil) ?(\w+)?"
+        date-header (date-vec (extract (rows 2)))
+        keys-to-symbol {"Earnings Per Share" :eps
+                        "Book Value Per Share" :reported_book_value
+                        "Dividends" :dividends
+                        "Shares Mil" :shares_outstanding}]
+    (flatten (for [record rows
+                     :let [match (re-matches regex (record 0))
+                           currency (get match 2)
+                           name (get match 1)]
+                     
+                     :when (and (> (count record) 2) match)]
+               (filter #(not (nil? (:amount %)))
+                       (map #(assoc {}
+                               :name (keys-to-symbol name)
+                               :amount %1
+                               :date %2)
+                            (if currency
+                              (money-vec (extract record) currency)
+                              (map #(* 1e6 %) (double-vec (extract record)))) date-header))))))

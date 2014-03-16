@@ -122,18 +122,31 @@
                       ["Shares Mil"  "40" "40" "40"]
                       ["Book Value Per Share EUR" "11.02" "12.07" "13.20"]]
         result (parse-keyratios sample-input)]
-    (is (= (count result) 7))
-    (is (= result [nil nil nil
- {:eps
-  [(as-money "3.05" "EUR")
-   (as-money "2.85" "EUR")]}
- {:dividends
-  [(as-money "0.38" "EUR")
-   (as-money "0.56" "EUR")],
-  :currency "EUR"}
- {:shares_outstanding 4.0E7}
- {:reported_book_value (as-money "12.07" "EUR")}
-]))))
+    (is (= (count result) 8))
+    (is (= result [{:name :eps
+                    :amount (as-money "3.05" "EUR")
+                    :date (date-time 2008 12 01)}
+                   {:name :eps
+                    :amount (as-money "2.85" "EUR")
+                    :date (date-time 2009 12 01)}
+                   {:name :dividends
+                    :amount (as-money "0.38" "EUR")
+                    :date (date-time 2008 12 01)}
+                   {:name :dividends
+                    :amount (as-money "0.56" "EUR")
+                    :date (date-time 2009 12 01)}
+                   {:name :shares_outstanding
+                    :amount 4.0E7
+                    :date (date-time 2008 12 01)}
+                   {:name :shares_outstanding
+                    :amount 4.0E7
+                    :date (date-time 2009 12 01)}
+                   {:name :reported_book_value
+                    :amount (as-money "11.02" "EUR")
+                    :date (date-time 2008 12 01)}
+                   {:name :reported_book_value
+                    :amount (as-money "12.07" "EUR")
+                    :date (date-time 2009 12 01)}]))))
 
 
  
