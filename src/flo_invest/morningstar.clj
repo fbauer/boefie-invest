@@ -1,7 +1,8 @@
 (ns flo-invest.morningstar
-  (:require [flo-invest.bigmoney :refer :all]
+  (:require [clojure.java.io :as io]
+            [flo-invest.bigmoney :refer :all]
             [clj-time.core :refer [date-time]]
-            [clj-time.format :refer [parse formatters]]
+            [clj-time.format :refer [parse formatters formatter]]
             [clj-time.coerce :refer [from-string]])
   (:import [java.math RoundingMode]))
 
@@ -110,4 +111,35 @@
                                :date %2)
                             (if currency
                               (money-vec (extract record) currency)
-                              (map #(* 1e6 %) (double-vec (extract record)))) date-header))))))
+                              (map #(* 1e6 %) (double-vec (extract record))))
+                            date-header))))))
+
+(defn parse-dir
+  "Iterate through the directory datadir and find files with stock
+  information.
+
+  Returns a seq of maps {:isin :type :file}, where :isin is an isin
+  string, :type is one of :balancesheet, :incomestatement or
+  :keyratios and file is a handle to the file."
+  ([datadir]
+     (parse-dir datadir file-seq))
+  ;; second entry point is for testing purposes
+  ([datadir iterator]
+     (for [f (iterator (io/file datadir))
+           :let [filename (.getName f)
+                 dirname (.getName (.getParentFile f))
+                 parts (clojure.string/split filename #" ")
+                 isin (first parts)
+                 date-added (try (parse (formatter "yyyy_MM_dd") dirname) (catch Exception e))]
+           :when (and (.endsWith filename ".csv")
+                      (= 3 (count parts))
+                      (contains? #{["Balance" "Sheet.csv"]
+                                   ["Income" "Statement.csv"]
+                                   ["Key" "Ratios.csv"]} (subvec parts 1))
+                      date-added)]
+       {:isin isin :type ({"Balance" :balancesheet
+                           "Income" :incomestatement
+                           "Key" :keyratios} (parts 1))
+        :file f :date_added date-added})))
+
+

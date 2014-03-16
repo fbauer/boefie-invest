@@ -1,5 +1,4 @@
-(ns flo-invest.core (:require [clojure.java.io :as io]
-                              [clojure.set :only select]
+(ns flo-invest.core (:require [clojure.set :only select]
                               [clj-time.core :only year]
                               [flo-invest.bigmoney :refer :all]
                               [flo-invest.morningstar])
@@ -17,20 +16,7 @@
   handle to the file.
   "
   [datadir]
-  (group-by :isin
-            (for [f (file-seq (io/file datadir))
-                  :let [filename (.getName f)
-                        parts (clojure.string/split filename #" ")
-                        isin (parts 0)]
-                  :when (and
-                         (.endsWith filename ".csv")
-                         (= 3 (count parts))
-                         (contains? #{["Balance" "Sheet.csv"]
-                                      ["Income" "Statement.csv"]
-                                      ["Key" "Ratios.csv"]} (subvec parts 1))
-                         ) ] {:isin isin :type ({"Balance" :balancesheet
-                                                 "Income" :incomestatement
-                                                 "Key" :keyratios} (parts 1)) :file f})))
+  (group-by :isin (flo-invest.morningstar/parse-dir datadir)))
 
 (defn- slurp-csv [type struct]
   (vec (parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file)))))
@@ -83,7 +69,9 @@
                    {(item :name) (item :amount)}
                    {(item :name) nil}))))
 
-(defn getitems [isin name seq]
+(defn getitems
+  "Legacy function"
+  [isin name seq]
   (let [amounts (map :amount (filter #(= (:name %) name) seq))
         years (map #(clj-time.core/year (% :date)) (filter #(= (:name %) name) seq))
         yearmap (zipmap years amounts)
@@ -104,9 +92,11 @@
   [isin keyratios]
   (let [result (flo-invest.morningstar/parse-keyratios keyratios)
         bookvalue (getitems isin :reported_book_value result)]
-    {:currency (.getCode (.getCurrencyUnit (if (last bookvalue) (last bookvalue) (as-money "0" (cond (contains? #{"NO0003072407"} isin) "NOK"
-                                                                                                     (contains? #{"CH0100699641"} isin) "CHF"
-                                                                                                     :else "EUR")))))
+    {:currency (.getCode (.getCurrencyUnit (if (last bookvalue)
+                                             (last bookvalue)
+                                             (as-money "0" (cond (contains? #{"NO0003072407"} isin) "NOK"
+                                                                 (contains? #{"CH0100699641"} isin) "CHF"
+                                                                 :else "EUR")))))
      :eps (getitems isin :eps result)
      :dividends (getitems isin :dividends result)
      :reported_book_value (last (getitems isin :reported_book_value result))

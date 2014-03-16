@@ -98,7 +98,7 @@
         py-data (binding [factory/*json-factory*
                           (factory/make-json-factory {:allow-non-numeric-numbers true})]
                   (parse-stream (clojure.java.io/reader json-path)))
-        clj-data (vec (for [input (parse-dir data-dir )] (load-data (last input))))
+        clj-data (vec (for [input (parse-dir data-dir)] (load-data (last input))))
 
         py-convert (fn [py key] (case key
                                   :isin (py key)
