@@ -5,6 +5,11 @@
             [flo-invest.morningstar :refer :all]
             [flo-invest.bigmoney :refer [ as-money]]))
 
+(deftest test-as-float
+  (is (= (as-float "1.23") 1.23))
+  (is (= (as-float "1,234.56") 1234.56))
+  (is (Double/isNaN (as-float ""))))
+
 (deftest test-parse-income-good-doc
   (let [sample-input [["RHI AG  (RAD) CashFlowFlag INCOME STATEMENT"]
                       ["Fiscal year ends in December. EUR in millions except per share data."

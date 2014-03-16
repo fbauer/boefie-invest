@@ -34,16 +34,6 @@
 (defn- slurp-csv [type struct]
   (vec (parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file)))))
 
-(defn as-float
-  "Create double from string.
-
-  Empty strings are interpreted as NaN. The number representation is
-  expected in american format, using a comma as thousands separator."
-  [a_string]
-  (if (= a_string  "")
-    Double/NaN
-    (Double/parseDouble (clojure.string/replace a_string "," "" ))))
-
 (defn python-compatible?
   "deprecated. Used to make old unit tests happy"
   [isin result]
@@ -92,29 +82,10 @@
                    {(item :name) (item :amount)}
                    {(item :name) nil}))))
 
-(defn double-vec
-  "Legacy function"
-  [line]
-  (vec (map as-float (subvec line 1 (- (count line) 1)))))
-
-(defn money-vec
-  "Legacy function"
-  [line currency]
-  (vec (map #(as-money % currency) (subvec line 1 (- (count line) 1)))))
-
 (defn- parse-keyratios
   "Legacy function"
   [isin keyratios]
-  (for [line keyratios]
-    (if-let [match (re-matches #"Dividends (\w+)" (first line))]
-      (into {} {:dividends (money-vec line (last match))
-                :currency (last match)})
-      (if-let [match (re-matches #"Earnings Per Share (\w+)" (first line))]
-        (into {} {:eps (money-vec line (last match))})
-        (if-let [match (re-matches #"Book Value Per Share (\w+)" (first line))]
-          (into {} {:reported_book_value (last (money-vec line (last match)))})
-          (if-let [match (re-matches #"Shares Mil" (first line))]
-            (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})))))))
+  (flo-invest.morningstar/parse-keyratios keyratios))
 
 (defn add-tangible-book-value
   "Legacy function"

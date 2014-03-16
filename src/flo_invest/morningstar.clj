@@ -61,3 +61,37 @@
   [income]
   (parse-morningstar income #(subvec % 1 (- (count %) 1))
                      {"Revenue" :annual_sales}))
+
+(defn as-float
+  "Create double from string.
+
+  Empty strings are interpreted as NaN. The number representation is
+  expected in american format, using a comma as thousands separator."
+  [a_string]
+  (if (= a_string  "")
+    Double/NaN
+    (Double/parseDouble (clojure.string/replace a_string "," "" ))))
+
+(defn double-vec
+  "Legacy function"
+  [line]
+  (vec (map as-float (subvec line 1 (- (count line) 1)))))
+
+(defn legacy-money-vec
+  "Legacy function"
+  [line currency]
+  (vec (map #(as-money % currency) (subvec line 1 (- (count line) 1)))))
+
+(defn parse-keyratios
+  "Legacy function"
+  [keyratios]
+  (for [line keyratios]
+    (if-let [match (re-matches #"Dividends (\w+)" (first line))]
+      (into {} {:dividends (legacy-money-vec line (last match))
+                :currency (last match)})
+      (if-let [match (re-matches #"Earnings Per Share (\w+)" (first line))]
+        (into {} {:eps (legacy-money-vec line (last match))})
+        (if-let [match (re-matches #"Book Value Per Share (\w+)" (first line))]
+          (into {} {:reported_book_value (last (legacy-money-vec line (last match)))})
+          (if-let [match (re-matches #"Shares Mil" (first line))]
+            (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})))))))
