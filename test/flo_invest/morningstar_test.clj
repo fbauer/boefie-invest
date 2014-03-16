@@ -10,7 +10,7 @@
   (is (= (as-float "1,234.56") 1234.56))
   (is (Double/isNaN (as-float ""))))
 
-(deftest test-parse-income-good-doc
+(deftest test-parse-income
   (let [sample-input [["RHI AG  (RAD) CashFlowFlag INCOME STATEMENT"]
                       ["Fiscal year ends in December. EUR in millions except per share data."
                        "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
@@ -62,7 +62,7 @@
          :amount (as-money "23000000" "GBP")
          :date (date-time 2009 12 01)}]))
 
-(deftest test-parse-balance-good-doc
+(deftest test-parse-balance
   (let [sample-input [["OMV AG  (OMV) CashFlowFlag BALANCE SHEET"]
                       ["Fiscal year ends in December. EUR in millions except per share data."
                        "2008-12" "2009-12"]
@@ -111,3 +111,46 @@
             {:amount (as-money "11380000000" "EUR")
              :date (date-time 2009 12 01)
              :name :total_liabilities}]))))
+
+
+(deftest test-parse-keyratios
+  (let [sample-input [["Growth Profitability and Financial Ratios for RHI AG"]
+["Financials"]
+["" "2003-12" "2004-12" "2005-12" "2006-12" "2007-12" "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
+["Earnings Per Share EUR" "2.04" "13.58" "38.55" "157.01" "2.77" "2.48" "0.52" "2.66" "3.05" "2.85" "3.22"]
+["Dividends EUR" "" "" "" "" "" "" "" "" "0.38" "0.56" ""]
+["Shares Mil" "39" "7" "2" "1" "36" "38" "40" "40" "40" "40" "40"]
+["Book Value Per Share EUR" "" "" "" "" "" "" "" "8.06" "11.02" "12.07" "13.20"]]
+        result (parse-keyratios sample-input)]
+    (is (= (count result) 7))
+    (is (= result [nil nil nil
+ {:eps
+  [(as-money "2.04" "EUR")
+   (as-money "13.58" "EUR")
+   (as-money "38.55" "EUR")
+   (as-money "157.01" "EUR")
+   (as-money "2.77" "EUR")
+   (as-money "2.48" "EUR")
+   (as-money "0.52" "EUR")
+   (as-money "2.66" "EUR")
+   (as-money "3.05" "EUR")
+   (as-money "2.85" "EUR")]}
+ {:dividends
+  [nil
+   nil
+   nil
+   nil
+   nil
+   nil
+   nil
+   nil
+   (as-money "0.38" "EUR")
+   (as-money "0.56" "EUR")],
+  :currency "EUR"}
+ {:shares_outstanding 4.0E7}
+ {:reported_book_value (as-money "12.07" "EUR")}
+]))))
+
+
+ 
+

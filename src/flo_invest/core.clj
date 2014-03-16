@@ -82,7 +82,7 @@
                    {(item :name) (item :amount)}
                    {(item :name) nil}))))
 
-(defn- parse-keyratios
+(defn parse-keyratios
   "Legacy function"
   [isin keyratios]
   (flo-invest.morningstar/parse-keyratios keyratios))
