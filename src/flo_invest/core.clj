@@ -51,9 +51,12 @@
                (= :long_term_debt (result :name))))
     false
     (or (contains? #{2012} (clj-time.core/year (result :date)))
-        (contains? #{"US6261881063" "SE0000818031"
-                     "NO0010571680" "NL0000292324"
-                     "GB00B1CM8S45" "GB00B17BBQ50"
+        (contains? #{"US6261881063"
+                     "SE0000818031"
+                     "NO0010571680"
+                     "NL0000292324"
+                     "GB00B1CM8S45"
+                     "GB00B17BBQ50"
                      "GB0004564430" 
                      "FR0000054314"
                      "DE0006757008"
