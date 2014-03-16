@@ -7,8 +7,7 @@
             [cheshire.core :refer :all]
             [cheshire.factory :as factory])
   (:import [org.joda.money BigMoney CurrencyUnit]
-           [java.math  RoundingMode])
-  )
+           [java.math  RoundingMode]))
 
 (def data-dir
   "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar/2013_10_05/")
@@ -64,15 +63,14 @@
                   :split_bonus_factor 1.0
                   :tangible_book_value (as-money "17.5700970874" "USD")
                   :total_assets (as-money "10329000000" "USD")
-                  :total_liabilities (as-money "4276000000" "USD")
-                  }]
+                  :total_liabilities (as-money "4276000000" "USD")}]
     (testing "Result from calling load-data is as expected"
       (is (= input expected)))))
 
 (deftest  test-data-loads-without-hickups
   (testing "test that all data files can be loaded"
     (doseq [testdata (parse-dir data-dir)]
-      (is (not= {} (load-data (last  testdata))) (first testdata)))))
+      (is (not= {} (load-data (last testdata))) (first testdata)))))
 
 (deftest test-as-float
   (is (= (as-float "1.23") 1.23))
@@ -100,11 +98,11 @@
   (if (Double/isNaN amount) nil 
       (BigMoney/of (CurrencyUnit/getInstance currency) (double amount))))
 
-(deftest  compare-with-python-results
-  (let [py-data (binding [factory/*json-factory*
+(deftest compare-with-python-results
+  (let [json-path "/home/flo/geldanlage/aktienscreen_2013_10_05/morningstar.json"
+        py-data (binding [factory/*json-factory*
                           (factory/make-json-factory {:allow-non-numeric-numbers true})]
-                  (parse-stream (clojure.java.io/reader
-                                 "/home/flo/geldanlage/aktienscreen_2013_10_05/morningstar.json")))
+                  (parse-stream (clojure.java.io/reader json-path)))
         clj-data (vec (for [input (parse-dir data-dir )] (load-data (last input))))
 
         py-convert (fn [py key] (case key
@@ -124,8 +122,9 @@
                  :tangible_book_value :total_assets :total_liabilities]
         py-map (map #(zipmap py-keys %) py-data)
         ]
-    (doseq [[py clj] (map list (sort-by :isin py-map) (sort-by :isin clj-data))
-            key py-keys] (is (eq (py-convert py key) (clj key)) (str (py :isin) " " key " " (py key))))
-    ))
+    (doseq [[py clj]
+            (map list (sort-by :isin py-map) (sort-by :isin clj-data))
+            key py-keys]
+      (is (eq (py-convert py key) (clj key)) (str (py :isin) " " key " " (py key))))))
 
 

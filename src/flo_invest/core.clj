@@ -4,8 +4,7 @@
                               [flo-invest.bigmoney :refer :all]
                               [flo-invest.morningstar])
     (:import [java.math RoundingMode])
-    (:use clojure-csv.core)
-    )
+    (:use clojure-csv.core))
 
 (defn parse-dir
   "Iterate through the directory datadir and find triples of files
@@ -30,14 +29,20 @@
                                       ["Key" "Ratios.csv"]} (subvec parts 1))
                          ) ] {:isin isin :type ({"Balance" :balancesheet
                                                  "Income" :incomestatement
-                                                 "Key" :keyratios} (parts 1))  :file f})))
+                                                 "Key" :keyratios} (parts 1)) :file f})))
 
 (defn- slurp-csv [type struct]
   (vec (parse-csv (slurp ((first (clojure.set/select #(= (:type %) type) struct)) :file)))))
 
-(defn as-float [a_string]
-  (if (= a_string  "") Double/NaN
-      (Double/parseDouble (clojure.string/replace a_string "," "" ))))
+(defn as-float
+  "Create double from string.
+
+  Empty strings are interpreted as NaN. The number representation is
+  expected in american format, using a comma as thousands separator."
+  [a_string]
+  (if (= a_string  "")
+    Double/NaN
+    (Double/parseDouble (clojure.string/replace a_string "," "" ))))
 
 (defn python-compatible?
   "deprecated. Used to make old unit tests happy"
@@ -79,21 +84,27 @@
       {:annual_sales (result :amount)}
       {:annual_sales nil})))
 
-(defn- parse-balance [isin balance]
+(defn- parse-balance
+  "Legacy function"
+  [isin balance]
   (apply merge (for [item (flo-invest.morningstar/parse-balance  balance)]
                  (if (python-compatible? isin item)
                    {(item :name) (item :amount)}
                    {(item :name) nil}))))
 
-(defn double-vec [line]
-  (vec (map as-float (subvec line 1 (- (count line) 1))))
-  )
+(defn double-vec
+  "Legacy function"
+  [line]
+  (vec (map as-float (subvec line 1 (- (count line) 1)))))
 
-(defn money-vec [line currency]
-  (vec (map #(as-money % currency) (subvec line 1 (- (count line) 1))))
-  )
+(defn money-vec
+  "Legacy function"
+  [line currency]
+  (vec (map #(as-money % currency) (subvec line 1 (- (count line) 1)))))
 
-(defn- parse-keyratios [isin keyratios]
+(defn- parse-keyratios
+  "Legacy function"
+  [isin keyratios]
   (for [line keyratios]
     (if-let [match (re-matches #"Dividends (\w+)" (first line))]
       (into {} {:dividends (money-vec line (last match))
@@ -103,20 +114,23 @@
         (if-let [match (re-matches #"Book Value Per Share (\w+)" (first line))]
           (into {} {:reported_book_value (last (money-vec line (last match)))})
           (if-let [match (re-matches #"Shares Mil" (first line))]
-            (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})
-            ))))))
+            (into {} {:shares_outstanding (* 1e6 (last (double-vec line)))})))))))
 
-(defn add-tangible-book-value [input-map]
+(defn add-tangible-book-value
+  "Legacy function"
+  [input-map]
   (merge {:tangible_book_value
           (minus (input-map :reported_book_value)
                  (divide (plus (with-scale (input-map :goodwill) 10) (input-map :intangibles))
-                         (input-map :shares_outstanding)))
-          } input-map))
+                         (input-map :shares_outstanding)))} input-map))
 
 (defn load-data
   "Process files as delivered by parse-dir.
-  Returns output in format heavily inspired by the previous python format.
-  "
+
+  Legacy function.
+
+  Returns output in format heavily inspired by the previous python
+  format."
   [file-data]
   (let [isin ((first file-data) :isin)
         missing (as-money "" "EUR")
@@ -129,13 +143,11 @@
                  :current_assets missing
                  :current_liabilities missing
                  :long_term_debt missing
-                 :isin isin
-                 }
+                 :isin isin}
         file-data-set (set file-data)
         income (slurp-csv :incomestatement file-data-set)
         balance (slurp-csv :balancesheet file-data-set)
-        keyratios (slurp-csv :keyratios file-data-set)
-        ]
+        keyratios (slurp-csv :keyratios file-data-set)]
     (add-tangible-book-value (apply merge (cons inputs
                                                 (concat 
                                                  (parse-income isin income)
