@@ -3,7 +3,8 @@
                               [clj-time.core :only year]
                               [flo-invest.bigmoney :refer :all]
                               [flo-invest.morningstar])
-    (:import [java.math RoundingMode])
+    (:import [java.math RoundingMode]                              
+             [org.joda.money BigMoney])
     (:use clojure-csv.core))
 
 (defn parse-dir
@@ -82,10 +83,34 @@
                    {(item :name) (item :amount)}
                    {(item :name) nil}))))
 
+(defn getitems [isin name seq]
+  (let [amounts (map :amount (filter #(= (:name %) name) seq))
+        years (map #(clj-time.core/year (% :date)) (filter #(= (:name %) name) seq))
+        yearmap (zipmap years amounts)
+        years (cond (contains? #{"DE0008430026" "US6261881063"
+                                 "SE0000818031" "NO0010571680"
+                                 "NL0000292324" "FR0000054314"
+                                 "DE0006757008" "CH0100699641"} isin) (range 2002 2012)
+                    (contains? #{"AT0000969985" "GB00B1CM8S45"
+                                 "GB00B17BBQ50" "GB0004564430"
+                                 "GB0000592062" "FR0010490920"
+                                 "FR0010220475" "FR0000066052"
+                                 "DE0007297004"} isin) (range 2004 2014)
+                    :else (range 2003 2013))]
+    (vec (for [year years] (get yearmap year)))))
+
 (defn parse-keyratios
   "Legacy function"
   [isin keyratios]
-  (flo-invest.morningstar/parse-keyratios keyratios))
+  (let [result (flo-invest.morningstar/parse-keyratios keyratios)
+        bookvalue (getitems isin :reported_book_value result)]
+    {:currency (.getCode (.getCurrencyUnit (if (last bookvalue) (last bookvalue) (as-money "0" (cond (contains? #{"NO0003072407"} isin) "NOK"
+                                                                                                     (contains? #{"CH0100699641"} isin) "CHF"
+                                                                                                     :else "EUR")))))
+     :eps (getitems isin :eps result)
+     :dividends (getitems isin :dividends result)
+     :reported_book_value (last (getitems isin :reported_book_value result))
+     :shares_outstanding (last  (getitems isin :shares_outstanding result))}))
 
 (defn add-tangible-book-value
   "Legacy function"

@@ -132,31 +132,29 @@
 ["Shares Mil" "39" "7" "2" "1" "36" "38" "40" "40" "40" "40" "40"]
 ["Book Value Per Share EUR" "" "" "" "" "" "" "" "8.06" "11.02" "12.07" "13.20"]]
         result (parse-keyratios nil sample-input)]
-    (is (= (count result) 7))
-    (is (= result [nil nil nil
- {:eps
-  [(as-money "2.04" "EUR")
-   (as-money "13.58" "EUR")
-   (as-money "38.55" "EUR")
-   (as-money "157.01" "EUR")
-   (as-money "2.77" "EUR")
-   (as-money "2.48" "EUR")
-   (as-money "0.52" "EUR")
-   (as-money "2.66" "EUR")
-   (as-money "3.05" "EUR")
-   (as-money "2.85" "EUR")]}
- {:dividends
-  [nil
-   nil
-   nil
-   nil
-   nil
-   nil
-   nil
-   nil
-   (as-money "0.38" "EUR")
-   (as-money "0.56" "EUR")],
-  :currency "EUR"}
- {:shares_outstanding 4.0E7}
- {:reported_book_value (as-money "12.07" "EUR")}
-]))))
+    (is (= result 
+           {:eps
+            [(as-money "2.04" "EUR")
+             (as-money "13.58" "EUR")
+             (as-money "38.55" "EUR")
+             (as-money "157.01" "EUR")
+             (as-money "2.77" "EUR")
+             (as-money "2.48" "EUR")
+             (as-money "0.52" "EUR")
+             (as-money "2.66" "EUR")
+             (as-money "3.05" "EUR")
+             (as-money "2.85" "EUR")]
+            :dividends
+            [nil
+             nil
+             nil
+             nil
+             nil
+             nil
+             nil
+             nil
+             (as-money "0.38" "EUR")
+             (as-money "0.56" "EUR")]
+            :currency "EUR"
+            :shares_outstanding 4.0E7
+            :reported_book_value (as-money "12.07" "EUR")}))))
