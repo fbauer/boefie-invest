@@ -63,7 +63,7 @@
   (parse-morningstar income #(subvec % 1 (- (count %) 1))
                      {"Revenue" :annual_sales}))
 
-(defn as-float
+(defn as-double
   "Create double from string.
 
   Empty strings are interpreted as NaN. The number representation is
@@ -74,14 +74,9 @@
     (Double/parseDouble (clojure.string/replace a_string "," "" ))))
 
 (defn double-vec
-  "Legacy function"
+  "Converat a vector of strings to a vector of doubles."
   [line]
-  (vec (map as-float line)))
-
-(defn legacy-money-vec
-  "Legacy function"
-  [line currency]
-  (vec (map #(as-money % currency) (subvec line 1 (- (count line) 1)))))
+  (vec (map as-double line)))
 
 (defn parse-keyratios
   "Parse a key ratios csv file as issued by Morningstar.
@@ -115,12 +110,16 @@
                             date-header))))))
 
 (defn parse-dir
-  "Iterate through the directory datadir and find files with stock
-  information.
+  "Find files with stock information.
 
-  Returns a seq of maps {:isin :type :file}, where :isin is an isin
-  string, :type is one of :balancesheet, :incomestatement or
-  :keyratios and file is a handle to the file."
+  Recursively iterate through datadir. parse-dir expects to find
+  subdirectories whose name is a datestring in yyyy_MM_dd format,
+  which contain csv files downloaded from morningstar.com.
+
+  Returns a seq of maps {:isin :type :file :date_added}, where :isin
+  is an isin string, :type is one of :balancesheet, :incomestatement
+  or :keyratios, file is a handle to the file and :date_added is a
+  datetime reprsentation."
   ([datadir]
      (parse-dir datadir file-seq))
   ;; second entry point is for testing purposes
@@ -130,7 +129,9 @@
                  dirname (.getName (.getParentFile f))
                  parts (clojure.string/split filename #" ")
                  isin (first parts)
-                 date-added (try (parse (formatter "yyyy_MM_dd") dirname) (catch Exception e))]
+                 date-added (try
+                              (parse (formatter "yyyy_MM_dd") dirname)
+                              (catch Exception e))]
            :when (and (.endsWith filename ".csv")
                       (= 3 (count parts))
                       (contains? #{["Balance" "Sheet.csv"]

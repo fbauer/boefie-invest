@@ -6,10 +6,10 @@
             [flo-invest.morningstar :refer :all]
             [flo-invest.bigmoney :refer [ as-money]]))
 
-(deftest test-as-float
-  (is (= (as-float "1.23") 1.23))
-  (is (= (as-float "1,234.56") 1234.56))
-  (is (Double/isNaN (as-float ""))))
+(deftest test-as-double
+  (is (= (as-double "1.23") 1.23))
+  (is (= (as-double "1,234.56") 1234.56))
+  (is (Double/isNaN (as-double ""))))
 
 (deftest test-parse-income
   (let [sample-input [["RHI AG  (RAD) CashFlowFlag INCOME STATEMENT"]
@@ -48,13 +48,13 @@
         ["Fiscal year ends in December. GBP in millions except per share data."
          "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]]
        []
-       ;; Empty "Revenue" items  
+       ;; Empty "Revenue" items
        [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
         ["Fiscal year ends in December. GBP in millions except per share data."
          "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
         ["Revenue" "" "" "" "" "" ""]]
        []
-       ;; Missing "Revenue" items  
+       ;; Missing "Revenue" items
        [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
         ["Fiscal year ends in December. GBP in millions except per share data."
          "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
@@ -187,5 +187,3 @@
              :type :keyratios
              :file (io/file "/root/2013_04_04/anisin Key Ratios.csv")
              :date_added (date-time 2013 04 04)}]))))
- 
-
