@@ -12,10 +12,11 @@
   (is (Double/isNaN (as-double ""))))
 
 (deftest test-parse-income
-  (let [sample-input [["RHI AG  (RAD) CashFlowFlag INCOME STATEMENT"]
-                      ["Fiscal year ends in December. EUR in millions except per share data."
-                       "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
-                      ["Revenue" "1597" "1237" "1523" "1759" "1836" "1761"]]
+  (let [sample-input
+        [["RHI AG  (RAD) CashFlowFlag INCOME STATEMENT"]
+         ["Fiscal year ends in December. EUR in millions except per share data."
+          "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
+         ["Revenue" "1597" "1237" "1523" "1759" "1836" "1761"]]
         result (parse-income sample-input)]
     (is (= (count result) 5))
     (is (= result
@@ -64,15 +65,16 @@
          :date (date-time 2009 12 01)}]))
 
 (deftest test-parse-balance
-  (let [sample-input [["OMV AG  (OMV) CashFlowFlag BALANCE SHEET"]
-                      ["Fiscal year ends in December. EUR in millions except per share data."
-                       "2008-12" "2009-12"]
-                      ["Total current assets" "5884" "5622"]
-                      ["Intangible assets" "807" "812"]
-                      ["Total assets" "21376" "21415"]
-                      ["Total current liabilities" "5816" "4732"]
-                      ["Long-term debt" "2526" "3197"]
-                      ["Total liabilities" "12013" "11380"]]
+  (let [sample-input
+        [["OMV AG  (OMV) CashFlowFlag BALANCE SHEET"]
+         ["Fiscal year ends in December. EUR in millions except per share data."
+          "2008-12" "2009-12"]
+         ["Total current assets" "5884" "5622"]
+         ["Intangible assets" "807" "812"]
+         ["Total assets" "21376" "21415"]
+         ["Total current liabilities" "5816" "4732"]
+         ["Long-term debt" "2526" "3197"]
+         ["Total liabilities" "12013" "11380"]]
         result (parse-balance sample-input)]
     (is (= (count result) 12))
     (is (= result
@@ -115,13 +117,14 @@
 
 
 (deftest test-parse-keyratios
-  (let [sample-input [["Growth Profitability and Financial Ratios for RHI AG"]
-                      ["Financials"]
-                      ["" "2008-12" "2009-12" "TTM"]
-                      ["Earnings Per Share EUR" "3.05" "2.85" "3.22"]
-                      ["Dividends EUR" "0.38" "0.56" ""]
-                      ["Shares Mil"  "40" "40" "40"]
-                      ["Book Value Per Share EUR" "11.02" "12.07" "13.20"]]
+  (let [sample-input
+        [["Growth Profitability and Financial Ratios for RHI AG"]
+         ["Financials"]
+         ["" "2008-12" "2009-12" "TTM"]
+         ["Earnings Per Share EUR" "3.05" "2.85" "3.22"]
+         ["Dividends EUR" "0.38" "0.56" ""]
+         ["Shares Mil"  "40" "40" "40"]
+         ["Book Value Per Share EUR" "11.02" "12.07" "13.20"]]
         result (parse-keyratios sample-input)]
     (is (= (count result) 8))
     (is (= result [{:name :eps
@@ -160,8 +163,7 @@
                             "/root/2012_04_04/anotherisin Balance Sheet.csv"
                             "/root/2013_04_04/anisin Key Ratios.csv"
                             "/root/ignore-this/anisin Key Ratios.csv"
-                            "/root/ignore-this/foobar"
-                            ]))]
+                            "/root/ignore-this/foobar"]))]
     (is (= (parse-dir "/root" my-file-seq)
            [{:isin "anisin"
              :type :incomestatement

@@ -6,14 +6,25 @@
             [clj-time.coerce :refer [from-string]])
   (:import [java.math RoundingMode]))
 
-(defn annual_sales
-  [millions]
-  (multiply millions 1000000))
-
 (defn parse-date-yyyy-mm
   "Parse date in yyyy-mm format"
   [date-string]
   (parse (formatters :year-month) date-string))
+
+(defn as-double
+  "Create double from string.
+
+  Empty strings are interpreted as NaN. The number representation is
+  expected in american format, using a comma as thousands separator."
+  [a_string]
+  (if (= a_string  "")
+    Double/NaN
+    (Double/parseDouble (clojure.string/replace a_string "," "" ))))
+
+(defn double-vec
+  "Convert a vector of strings to a vector of doubles."
+  [line]
+  (vec (map as-double line)))
 
 (defn date-vec [csv-record]
   (vec (map parse-date-yyyy-mm csv-record)))
@@ -36,7 +47,7 @@
                (filter #(not (nil? (:amount %)))
                        (map #(assoc {}
                                :name (keys-to-symbol (record 0))
-                               :amount (annual_sales %1)
+                               :amount (multiply %1 1000000)
                                :date %2)
                             (money-vec (extract record) currency) date-header))))))
 
@@ -62,21 +73,6 @@
   [income]
   (parse-morningstar income #(subvec % 1 (- (count %) 1))
                      {"Revenue" :annual_sales}))
-
-(defn as-double
-  "Create double from string.
-
-  Empty strings are interpreted as NaN. The number representation is
-  expected in american format, using a comma as thousands separator."
-  [a_string]
-  (if (= a_string  "")
-    Double/NaN
-    (Double/parseDouble (clojure.string/replace a_string "," "" ))))
-
-(defn double-vec
-  "Converat a vector of strings to a vector of doubles."
-  [line]
-  (vec (map as-double line)))
 
 (defn parse-keyratios
   "Parse a key ratios csv file as issued by Morningstar.
@@ -119,7 +115,7 @@
   Returns a seq of maps {:isin :type :file :date_added}, where :isin
   is an isin string, :type is one of :balancesheet, :incomestatement
   or :keyratios, file is a handle to the file and :date_added is a
-  datetime reprsentation."
+  datetime representation."
   ([datadir]
      (parse-dir datadir file-seq))
   ;; second entry point is for testing purposes
