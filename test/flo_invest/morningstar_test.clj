@@ -189,3 +189,6 @@
              :type :keyratios
              :file (io/file "/root/2013_04_04/anisin Key Ratios.csv")
              :date_added (date-time 2013 04 04)}]))))
+
+(deftest test-load-data
+  (is (= (load-data "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar") [])))

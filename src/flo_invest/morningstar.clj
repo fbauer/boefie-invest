@@ -3,7 +3,8 @@
             [flo-invest.bigmoney :refer :all]
             [clj-time.core :refer [date-time]]
             [clj-time.format :refer [parse formatters formatter]]
-            [clj-time.coerce :refer [from-string]])
+            [clj-time.coerce :refer [from-string]]
+            [clojure-csv.core :refer [parse-csv]])
   (:import [java.math RoundingMode]))
 
 (defn parse-date-yyyy-mm
@@ -138,5 +139,20 @@
                            "Income" :incomestatement
                            "Key" :keyratios} (parts 1))
         :file f :date_added date-added})))
+
+
+(defn load-data
+  "Load all stock information from data-dir."
+  [data-dir]
+  (concat
+   (for [file-info (parse-dir data-dir)
+         :let [csv-data (parse-csv (slurp (:file file-info)))
+               isin-date (select-keys file-info [:date_added :isin])]]
+     (merge isin-date
+            (case (:type file-info)
+              :balancesheet (parse-balance csv-data)
+              :incomestatement (parse-income csv-data)
+              :keyratios (parse-keyratios csv-data))))))
+
 
 
