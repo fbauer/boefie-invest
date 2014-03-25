@@ -192,4 +192,6 @@
              :date_added (date-time 2013 04 04)}]))))
 
 (deftest test-load-data
-  (is (= (load-data (resource "resources/morningstar")) [])))
+  (doseq [result-record (load-data (resource "resources/morningstar"))]
+    (is (= (keys result-record)
+           [:name :amount :date :isin :date_added]))))

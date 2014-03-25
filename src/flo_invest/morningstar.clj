@@ -144,7 +144,7 @@
 (defn load-data
   "Load all stock information from data-dir."
   [data-dir]
-  (concat
+  (apply concat
    (for [file-info (parse-dir data-dir)
          :let [csv-data (vec (parse-csv (slurp (:file file-info))))
                isin-date (select-keys file-info [:date_added :isin])]]
