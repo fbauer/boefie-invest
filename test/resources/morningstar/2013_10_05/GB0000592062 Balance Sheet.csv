@@ -1,0 +1,46 @@
+﻿API GROUP PLC  (API) CashFlowFlag BALANCE SHEET
+Fiscal year ends in March. GBP in millions except per share data.,2009-03,2010-03,2011-03,2012-03,2013-03
+Assets
+Current assets
+Cash
+Cash and cash equivalents,2,1,4,10,6
+Short-term investments,,,,0,0
+Total cash,2,1,4,11,6
+Receivables,12,14,15,14,14
+Inventories,13,13,12,12,13
+Prepaid expenses,1,1,1,1,2
+Other current assets,1,1,1,1,1
+Total current assets,29,31,33,38,35
+Non-current assets
+"Property, plant and equipment"
+"Gross property, plant and equipment",92,87,65,68,73
+Accumulated Depreciation,-53,-58,-48,-50,-52
+"Net property, plant and equipment",38,29,17,18,21
+Goodwill,5,5,5,5,
+Intangible assets,,,,,5
+Deferred income taxes,2,8,5,5,7
+Other long-term assets,0,0,0,0,1
+Total non-current assets,46,42,28,28,34
+Total assets,75,73,61,67,69
+Liabilities and stockholders' equity
+Liabilities
+Current liabilities
+Short-term debt,5,5,2,4,3
+Accounts payable,12,12,17,16,16
+Taxes payable,4,0,0,0,0
+Other current liabilities,9,6,6,6,7
+Total current liabilities,30,24,25,27,27
+Non-current liabilities
+Long-term debt,11,14,10,9,6
+Deferred taxes liabilities,0,0,0,0,0
+Pensions and other benefits,,,,,13
+Minority interest,8,5,,,
+Other long-term liabilities,-1,11,10,9,0
+Total non-current liabilities,19,31,21,18,19
+Total liabilities,49,55,46,45,46
+Stockholders' equity
+Additional paid-in capital,7,7,7,7,7
+Retained earnings,-2,-8,-1,4,5
+Accumulated other comprehensive income,21,18,10,10,11
+Total stockholders' equity,26,17,15,21,23
+Total liabilities and stockholders' equity,75,73,61,67,69

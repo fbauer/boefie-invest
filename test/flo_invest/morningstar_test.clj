@@ -2,6 +2,7 @@
   (:require [clojure.java.io :as io]
             [clojure.data :refer :all]
             [clojure.test :refer :all]
+            [clojure.java.io :refer [resource]]
             [clj-time.core :refer [date-time]]
             [flo-invest.morningstar :refer :all]
             [flo-invest.bigmoney :refer [ as-money]]))
@@ -191,4 +192,4 @@
              :date_added (date-time 2013 04 04)}]))))
 
 (deftest test-load-data
-  (is (= (load-data "/home/flo/geldanlage/aktienscreen_2013_10_05/data/morningstar") [])))
+  (is (= (load-data (resource "resources/morningstar")) [])))

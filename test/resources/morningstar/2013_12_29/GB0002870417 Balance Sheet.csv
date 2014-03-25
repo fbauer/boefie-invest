@@ -1,0 +1,45 @@
+﻿RM PLC  (RMP) CashFlowFlag BALANCE SHEET
+Fiscal year ends in November. GBP in millions except per share data.,2007-09,2008-09,2009-09,2010-09,2012-11
+Assets
+Current assets
+Cash
+Cash and cash equivalents,29,18,13,14,38
+Short-term investments,,,,0,
+Total cash,29,18,13,14,38
+Receivables,48,54,65,75,42
+Inventories,14,18,20,25,15
+Prepaid expenses,4,7,5,5,7
+Other current assets,7,11,16,18,10
+Total current assets,102,109,119,138,111
+Non-current assets
+"Property, plant and equipment"
+"Gross property, plant and equipment",53,59,60,66,34
+Accumulated Depreciation,-32,-39,-39,-45,-23
+"Net property, plant and equipment",21,20,21,21,11
+Goodwill,25,30,34,36,24
+Intangible assets,6,7,8,5,-6
+Deferred income taxes,3,2,5,5,6
+Other long-term assets,,1,1,1,2
+Total non-current assets,54,59,69,68,37
+Total assets,156,169,188,206,149
+Liabilities and stockholders' equity
+Liabilities
+Current liabilities
+Short-term debt,0,1,2,1,
+Accounts payable,27,30,27,34,14
+Taxes payable,1,1,1,2,6
+Other current liabilities,59,62,67,71,71
+Total current liabilities,87,94,98,109,91
+Non-current liabilities
+Long-term debt,,1,8,12,
+Deferred taxes liabilities,0,0,0,0,
+Other long-term liabilities,11,10,21,19,32
+Total non-current liabilities,11,11,29,31,32
+Total liabilities,98,105,128,139,124
+Stockholders' equity
+Additional paid-in capital,26,27,27,27,27
+Retained earnings,31,36,32,40,-1
+Treasury stock,,,,,-3
+Accumulated other comprehensive income,1,1,2,-0,2
+Total stockholders' equity,58,63,61,66,25
+Total liabilities and stockholders' equity,156,169,188,206,149

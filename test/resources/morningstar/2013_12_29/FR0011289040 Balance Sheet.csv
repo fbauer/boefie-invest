@@ -1,0 +1,42 @@
+﻿SQLI SA  (SSXN) CashFlowFlag BALANCE SHEET
+Fiscal year ends in December. EUR in millions except per share data.,2008-12,2009-12,2010-12,2011-12,2012-12
+Assets
+Current assets
+Cash
+Cash and cash equivalents,,10,7,16,19
+Total cash,,10,7,16,19
+Receivables,,33,40,40,42
+Other current assets,,30,29,33,25
+Total current assets,,73,77,89,86
+Non-current assets
+"Property, plant and equipment"
+"Gross property, plant and equipment",,8,8,9,9
+Accumulated Depreciation,,-5,-5,-6,-7
+"Net property, plant and equipment",,3,3,3,3
+Goodwill,,44,43,44,
+Intangible assets,,4,4,4,47
+Deferred income taxes,,2,2,2,1
+Other long-term assets,,2,2,3,3
+Total non-current assets,,54,54,55,54
+Total assets,,127,131,144,140
+Liabilities and stockholders' equity
+Liabilities
+Current liabilities
+Short-term debt,,50,59,56,4
+Accounts payable,,9,11,11,9
+Taxes payable,,0,0,0,1
+Other current liabilities,,0,0,0,51
+Total current liabilities,,60,71,68,64
+Non-current liabilities
+Long-term debt,,7,0,13,10
+Deferred taxes liabilities,,0,0,1,0
+Other long-term liabilities,,4,4,3,2
+Total non-current liabilities,,11,5,16,12
+Total liabilities,,72,76,84,76
+Stockholders' equity
+Common stock,,2,2,2,
+Additional paid-in capital,,38,38,38,37
+Retained earnings,,-3,-2,4,25
+Accumulated other comprehensive income,,19,17,16,3
+Total stockholders' equity,,55,55,60,64
+Total liabilities and stockholders' equity,,127,131,144,140

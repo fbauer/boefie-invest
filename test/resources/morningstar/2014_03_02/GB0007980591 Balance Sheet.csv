@@ -1,0 +1,51 @@
+﻿BP PLC  (BPE5) CashFlowFlag BALANCE SHEET
+Fiscal year ends in December. USD in millions except per share data.,2008-12,2009-12,2010-12,2011-12,2012-12
+Assets
+Current assets
+Cash
+Cash and cash equivalents,8197,8339,18556,14067,19548
+Short-term investments,,4967,1532,288,319
+Total cash,8197,13306,20088,14355,19867
+Receivables,29806,29989,37489,44005,38367
+Inventories,16821,22605,26218,25661,27867
+Prepaid expenses,3050,1753,1574,1286,1058
+Other current assets,8510,,11484,12277,23822
+Total current assets,66384,67653,96853,97584,110981
+Non-current assets
+"Property, plant and equipment"
+"Gross property, plant and equipment",217109,231258,234239,241987,241055
+Accumulated Depreciation,-113909,-122983,-124076,-122773,-120607
+"Net property, plant and equipment",103200,108275,110163,119214,120448
+Equity and other investments,,29826,26812,28809,21424
+Goodwill,9878,8620,8598,12100,11861
+Intangible assets,10260,11548,14298,21102,24041
+Deferred income taxes,,516,528,611,874
+Other long-term assets,38516,9530,15010,13648,10564
+Total non-current assets,161854,168315,175409,195484,189212
+Total assets,228238,235968,272262,293068,300193
+Liabilities and stockholders' equity
+Liabilities
+Current liabilities
+Accounts payable,20716,35204,46329,52405,29703
+Short-term debt,15740,9109,14626,9044,10030
+Accrued liabilities,6743,6202,5612,5932,6810
+Other current liabilities,26594,8805,16265,16937,31043
+Total current liabilities,69793,59320,82832,84318,77586
+Non-current liabilities
+Long-term debt,17464,25518,30710,35169,38767
+Deferred taxes liabilities,16198,18662,10908,15078,15064
+Accrued liabilities,,703,637,3826,448
+Pensions and other postretirement benefits,,10010,9857,12018,13549
+Minority interest,806,500,904,1017,1206
+Other long-term liabilities,32674,19642,41427,30177,35159
+Total non-current liabilities,67142,75035,94443,97285,104193
+Total liabilities,136935,134355,177275,181603,181779
+Stockholders' equity
+Preferred stock,21,21,,,
+Common stock,91282,101592,94987,111465,118414
+Additional paid-in capital,9763,9847,,,
+Retained earnings,67080,72655,,83063,87485
+Treasury stock,-21513,-21303,,-21323,-21054
+Accumulated other comprehensive income,-55330,-61199,,-61740,-66431
+Total Stockholders' equity,91303,101613,94987,111465,118414
+Total liabilities and stockholders' equity,228238,235968,272262,293068,300193

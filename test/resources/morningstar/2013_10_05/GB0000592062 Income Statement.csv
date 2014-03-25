@@ -1,0 +1,28 @@
+﻿API GROUP PLC  (API) CashFlowFlag INCOME STATEMENT
+Fiscal year ends in March. GBP in millions except per share data.,2009-03,2010-03,2011-03,2012-03,2013-03,TTM
+Revenue,93,79,100,114,112,112
+Cost of revenue,75,61,76,87,84,84
+Gross profit,19,19,24,27,28,28
+Operating expenses
+Research and development,1,1,1,1,,
+"Sales, General and administrative",3,2,3,4,20,20
+"Restructuring, merger and acquisition",2,1,,,,
+Other operating expenses,8,12,14,15,1,1
+Total operating expenses,14,16,18,20,21,21
+Operating income,5,3,5,7,7,7
+Interest Expense,2,2,1,1,1,1
+Other income (expense),-0,-1,-1,-1,-1,-1
+Income before taxes,2,-0,3,5,6,6
+Provision for income taxes,4,-3,0,0,0,0
+Net income from continuing operations,-2,2,3,5,6,6
+Net income from discontinuing ops,-1,-4,-4,,,
+Other,-0,,,,,
+Net income,-4,-2,-2,5,6,6
+Net income available to common shareholders,-4,-2,-2,5,6,6
+Earnings per share
+Basic,-0.06,0.00,0.03,0.07,0.08,0.08
+Diluted,-0.06,,0.03,0.06,0.08,0.08
+Weighted average shares outstanding
+Basic,70,73,73,74,74,74
+Diluted,70,76,76,78,77,77
+EBITDA,8,5,7,9,9,9
