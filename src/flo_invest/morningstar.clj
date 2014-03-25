@@ -146,13 +146,13 @@
   [data-dir]
   (concat
    (for [file-info (parse-dir data-dir)
-         :let [csv-data (parse-csv (slurp (:file file-info)))
+         :let [csv-data (vec (parse-csv (slurp (:file file-info))))
                isin-date (select-keys file-info [:date_added :isin])]]
-     (merge isin-date
-            (case (:type file-info)
-              :balancesheet (parse-balance csv-data)
-              :incomestatement (parse-income csv-data)
-              :keyratios (parse-keyratios csv-data))))))
+     (map #(merge isin-date %)
+          (case (:type file-info)
+            :balancesheet (parse-balance csv-data)
+            :incomestatement (parse-income csv-data)
+            :keyratios (parse-keyratios csv-data))))))
 
 
 
