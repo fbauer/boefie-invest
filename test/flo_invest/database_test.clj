@@ -4,15 +4,9 @@
             [flo-invest.bigmoney :refer [as-money]]
             [clj-time.core :refer [date-time]]
             [clj-time.coerce :refer [to-string]]
-            [simple-check.core :as sc]
-            [simple-check.generators :as gen]
-            [simple-check.properties :as prop]
-            [clojure.java.jdbc :as sql]
-            [simple-check.clojure-test :as ct :refer (defspec)]
-            )
+            [clojure.java.jdbc :as sql])
   (:import [java.sql BatchUpdateException SQLException]
-           [java.util])
-  )
+           [java.util]))
 
 (def test-conn {:classname "org.sqlite.JDBC"
                 :subprotocol "sqlite"
@@ -29,8 +23,7 @@
          (finally
            (try
              (kill-db test-conn)
-             (catch BatchUpdateException e) )
-           ))))
+             (catch BatchUpdateException e))))))
 
 (use-fixtures :each database)
 
@@ -40,8 +33,7 @@
     (do (add-security test-conn row)
         (let [result (vec (db-read-all test-conn))]
           (is (= (class ((result 0) :date_added)) String))
-          (is (= result [(assoc  row :date_added (to-string (row :date_added)) :id 1)])))
-        )))
+          (is (= result [(assoc  row :date_added (to-string (row :date_added)) :id 1)]))))))
 
 (deftest test-constraints
   "It is not allowed to leave out either one of name, isin or
@@ -77,8 +69,7 @@ date_added when adding a new security to the database"
                 {:name "Silly corp (formerly ACME)"
                  :isin "de1234567890" :date_added (date-time 2013 1 1)}]
           [res1 res2 res3] (for [[row num] (map vector rows (map (zipmap order [1 2 3]) [0 1 2]))]
-                             (assoc row :date_added (to-string (row :date_added)) :id num)) 
-          ]
+                             (assoc row :date_added (to-string (row :date_added)) :id num))]
       (is (= (set (db-read-all test-conn)) #{}) "Sanity check that db is empty. Must never fail.")
       (doseq [row (map rows order)] (add-security test-conn row))
       (is (= (set (db-read-all test-conn)) #{res1 res2 res3}))
