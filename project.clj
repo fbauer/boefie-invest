@@ -10,4 +10,7 @@
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [clj-time "0.6.0"]
                  [korma "0.3.0-RC6"]]
-  :plugins [[lein-marginalia "0.7.1"]])
+  :plugins [[lein-marginalia "0.7.1"]]
+  :profiles {:dev {:dependencies [[org.clojure/tools.namespace "0.2.4"]
+                                  [difftest "1.3.8"]]
+                   :source-paths ["dev"]}})

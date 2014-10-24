@@ -17,7 +17,7 @@
   (do
     (try
       (kill-db test-conn)
-      (catch BatchUpdateException e) )
+      (catch BatchUpdateException e))
     (try (do (init-db test-conn)
              (f))
          (finally
