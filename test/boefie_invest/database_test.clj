@@ -1,7 +1,7 @@
-(ns flo-invest.database-test
+(ns boefie-invest.database-test
   (:require [clojure.test :refer :all]
-            [flo-invest.database :refer :all]
-            [flo-invest.bigmoney :refer [as-money]]
+            [boefie-invest.database :refer :all]
+            [boefie-invest.bigmoney :refer [as-money]]
             [clj-time.core :refer [date-time]]
             [clj-time.coerce :refer [to-string]]
             [clojure.java.jdbc :as sql])

@@ -1,6 +1,6 @@
-(ns flo-invest.bigmoney-test
+(ns boefie-invest.bigmoney-test
   (:require [clojure.test :refer :all]
-            [flo-invest.bigmoney :refer :all])
+            [boefie-invest.bigmoney :refer :all])
   (:import [org.joda.money BigMoney]))
 
 (deftest test-as-money

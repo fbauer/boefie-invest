@@ -1,6 +1,6 @@
-(ns flo-invest.morningstar
+(ns boefie-invest.morningstar
   (:require [clojure.java.io :as io]
-            [flo-invest.bigmoney :refer :all]
+            [boefie-invest.bigmoney :refer :all]
             [clj-time.core :refer [date-time]]
             [clj-time.format :refer [parse formatters formatter]]
             [clj-time.coerce :refer [from-string]]

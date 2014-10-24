@@ -1,4 +1,4 @@
-(ns flo-invest.bigmoney
+(ns boefie-invest.bigmoney
   (:import [org.joda.money BigMoney]
            [java.math RoundingMode])
   )

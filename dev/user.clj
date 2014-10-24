@@ -12,7 +12,7 @@
    [clojure.test]
    [difftest.core :as test]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
-   [flo-invest.morningstar]))
+   [boefie-invest.morningstar]))
 
 (def system
   "A Var containing an object representing the application under
@@ -55,14 +55,14 @@
 (defn run-tests
   "Run unit tests"
   []
-  (test/run-tests 'flo-invest.core-test
-                  'flo-invest.database-test
-                  'flo-invest.morningstar-test))
+  (test/run-tests 'boefie-invest.core-test
+                  'boefie-invest.database-test
+                  'boefie-invest.morningstar-test))
 
 (defn run-difftests
   "Run unit tests"
   []
   (test/activate)
-  (test/test-ns 'flo-invest.core-test
-                'flo-invest.database-test
-                'flo-invest.morningstar-test))
+  (test/test-ns 'boefie-invest.core-test
+                'boefie-invest.database-test
+                'boefie-invest.morningstar-test))

@@ -1,11 +1,11 @@
-(ns flo-invest.morningstar-test
+(ns boefie-invest.morningstar-test
   (:require [clojure.java.io :as io]
             [clojure.data :refer :all]
             [clojure.test :refer :all]
             [clojure.java.io :refer [resource]]
             [clj-time.core :refer [date-time]]
-            [flo-invest.morningstar :refer :all]
-            [flo-invest.bigmoney :refer [ as-money]]))
+            [boefie-invest.morningstar :refer :all]
+            [boefie-invest.bigmoney :refer [ as-money]]))
 
 (deftest test-as-double
   (is (= (as-double "1.23") 1.23))

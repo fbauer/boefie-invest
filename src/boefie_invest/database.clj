@@ -1,4 +1,4 @@
-(ns flo-invest.database
+(ns boefie-invest.database
   (:require [clojure.java.jdbc :as sql]
             [korma.core :refer :all]))
 
