@@ -1,8 +1,8 @@
-(defproject flo-invest "0.1.0-SNAPSHOT"
-  :description "Security analysis according to Graham"
+(defproject boefie-invest "0.1.0-SNAPSHOT"
+  :description "Tools for security analysis according to Benjamin Graham"
   :url ""
-  :license {:name ""
-            :url ""}
+  :license {:name "Eclipse Public License"
+            :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [clojure-csv/clojure-csv "2.0.1"]
                  [cheshire "5.3.0"]
@@ -11,6 +11,5 @@
                  [org.xerial/sqlite-jdbc "3.7.2"]
                  [clj-time "0.6.0"]
                  [reiddraper/simple-check "0.5.3"]
-                 [korma "0.3.0-RC6"]
-                 ]
+                 [korma "0.3.0-RC6"]]
   :plugins [[lein-marginalia "0.7.1"]])
