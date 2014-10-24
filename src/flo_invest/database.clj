@@ -1,4 +1,3 @@
-
 (ns flo-invest.database
   (:require [clojure.java.jdbc :as sql]
             [korma.core :refer :all]))
