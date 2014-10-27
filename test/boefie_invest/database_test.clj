@@ -3,8 +3,7 @@
             [boefie-invest.database :refer :all]
             [boefie-invest.bigmoney :refer [as-money]]
             [clj-time.core :refer [date-time]]
-            [clj-time.coerce :refer [to-string]]
-            [clojure.java.jdbc :as sql])
+            [clj-time.coerce :refer [to-string]])
   (:import [java.sql BatchUpdateException SQLException]
            [java.util]))
 
@@ -17,13 +16,13 @@
   (do
     (try
       (kill-db test-conn)
-      (catch BatchUpdateException e))
+      (catch BatchUpdateException e (println e)))
     (try (do (init-db test-conn)
              (f))
          (finally
            (try
              (kill-db test-conn)
-             (catch BatchUpdateException e))))))
+             (catch BatchUpdateException e (println e)))))))
 
 (use-fixtures :each database)
 

@@ -1,5 +1,6 @@
 (ns boefie-invest.database
-  (:require [clojure.java.jdbc :as sql]
+  (:require [clojure.java.jdbc.deprecated :as sql-old]
+            [clojure.java.jdbc :as jdbc]
             [korma.core :refer :all]))
 
 (def db
@@ -9,7 +10,7 @@
    :foreign_keys 1
    })
 
-(defn dbg [a] (do (print a) a))
+(defn dbg [a] (do (println a) a))
 
 ;; ## Table definitions
 
@@ -82,25 +83,30 @@
   "Create all tables. Assumes that none of the tables exists before.
    Table definitions are taken from the table-definitions var."
   [db-spec]
-  (sql/with-connection
-    db-spec
-    (doseq [table-name (keys table-definitions)]
-      (apply sql/create-table table-name
-             (table-definitions table-name)))))
+  
+  (doseq [table-name (keys table-definitions)]
+    (jdbc/db-do-commands
+     db-spec
+     (apply jdbc/create-table-ddl table-name
+            (table-definitions table-name)))))
 
 (defn kill-db
   "Drop all tables defined in table-definitions."
   [db-spec]
-  (sql/with-connection
-    db-spec
-    (doseq [table-name (keys table-definitions)]
-      (sql/drop-table table-name))))
+  (apply jdbc/db-do-commands
+   db-spec
+   (map #(format "DROP TABLE IF EXISTS %s"(jdbc/as-sql-name identity %))
+        ;; Vector of table names as defined in table-definitions. I
+        ;; can't use (key table-definitions) as I need to drop tables
+        ;; in the correct order. :isins needs to be dropped last,
+        ;; otherwise I generate foreign key constraint violations.
+        [:amounts :per_share_amounts :shares :securities :isins])))
 
 (defn add-security [db-spec sec]
-  (sql/with-connection
+  (sql-old/with-connection
     db-spec
-    (do (sql/insert-record :isins {:isin (sec :isin)})
-        (sql/insert-record :securities sec))))
+    (do (sql-old/insert-record :isins {:isin (sec :isin)})
+        (sql-old/insert-record :securities sec))))
 
 (defentity isins
   (pk :isin))
@@ -110,16 +116,16 @@
 
 (defn query
   [db-spec sql-params]
-  (sql/with-connection
+  (sql-old/with-connection
     db-spec
-    (sql/with-query-results results sql-params (vec results))))
+    (sql-old/with-query-results results sql-params (vec results))))
 
 (defn db-read-all
   [db-spec]
-  (query db-spec ["SELECT * FROM securities"]))
+  (jdbc/query db-spec ["SELECT * FROM securities"]))
 
 (defn db-read-date
   [db-spec read-date]
-  (query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
+  (jdbc/query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
 from securities where date_added <= ? group by isin " read-date]))
 
