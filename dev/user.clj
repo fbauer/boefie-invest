@@ -9,8 +9,7 @@
    [clojure.repl :refer (apropos dir doc find-doc pst source)]
    [clojure.set :as set]
    [clojure.string :as str]
-   [clojure.test]
-   [difftest.core :as test]
+   [clojure.test :as test]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]
    [boefie-invest.morningstar]))
 
@@ -61,9 +60,5 @@
   []
   (apply test/run-tests (:tests system)))
 
-(defn run-difftests
-  "Run unit tests"
-  []
-  (test/activate)
-  (apply test/test-ns (:tests system)))
+
 
