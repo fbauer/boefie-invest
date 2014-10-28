@@ -40,7 +40,7 @@
                                   [ring/ring-devel "1.3.1"]
                                   [pjstadig/humane-test-output "0.6.0"]
                                   [org.clojure/tools.namespace "0.2.4"]
-                                  [difftest "1.3.8"]],
+                                  [difftest "1.3.8"]]
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]
                    :source-paths ["dev"]
