@@ -17,7 +17,11 @@
 (def system
   "A Var containing an object representing the application under
   development."
-  nil)
+  {:tests ['boefie-invest.bigmoney-test
+           'boefie-invest.core-test
+           'boefie-invest.test.handler
+           'boefie-invest.database-test
+           'boefie-invest.morningstar-test]})
 
 (defn init
   "Creates and initializes the system under development in the Var
@@ -55,14 +59,11 @@
 (defn run-tests
   "Run unit tests"
   []
-  (test/run-tests 'boefie-invest.core-test
-                  'boefie-invest.database-test
-                  'boefie-invest.morningstar-test))
+  (apply test/run-tests (:tests system)))
 
 (defn run-difftests
   "Run unit tests"
   []
   (test/activate)
-  (test/test-ns 'boefie-invest.core-test
-                'boefie-invest.database-test
-                'boefie-invest.morningstar-test))
+  (apply test/test-ns (:tests system)))
+
