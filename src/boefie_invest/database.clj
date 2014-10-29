@@ -1,6 +1,5 @@
 (ns boefie-invest.database
-  (:require [clojure.java.jdbc.deprecated :as sql-old]
-            [clojure.java.jdbc :as jdbc]
+  (:require [clojure.java.jdbc :as jdbc]
             [korma.core :refer :all]))
 
 (def db
@@ -103,22 +102,14 @@
         [:amounts :per_share_amounts :shares :securities :isins])))
 
 (defn add-security [db-spec sec]
-  (sql-old/with-connection
-    db-spec
-    (do (sql-old/insert-record :isins {:isin (sec :isin)})
-        (sql-old/insert-record :securities sec))))
+  (do (jdbc/insert! db-spec :isins {:isin (sec :isin)})
+      (jdbc/insert! db-spec :securities sec)))
 
 (defentity isins
   (pk :isin))
 
 (defentity securities
   (has-one isins))
-
-(defn query
-  [db-spec sql-params]
-  (sql-old/with-connection
-    db-spec
-    (sql-old/with-query-results results sql-params (vec results))))
 
 (defn db-read-all
   [db-spec]

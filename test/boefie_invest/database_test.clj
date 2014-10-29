@@ -2,6 +2,7 @@
   (:require [clojure.test :refer :all]
             [boefie-invest.database :refer :all]
             [boefie-invest.bigmoney :refer [as-money]]
+            [clojure.java.jdbc :as jdbc]
             [clj-time.core :refer [date-time]]
             [clj-time.coerce :refer [to-string]])
   (:import [java.sql BatchUpdateException SQLException]
@@ -27,7 +28,7 @@
 (use-fixtures :each database)
 
 (deftest test-init-db
-  (is (= (query test-conn ["PRAGMA foreign_keys;"]) '({:foreign_keys 1})))
+  (is (= (jdbc/query test-conn ["PRAGMA foreign_keys;"]) '({:foreign_keys 1})))
   (let [row {:name "revenue" :isin "de1234567890" :date_added (date-time 2013 01 01 13 59 12)}]
     (do (add-security test-conn row)
         (let [result (vec (db-read-all test-conn))]
