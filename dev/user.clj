@@ -10,15 +10,13 @@
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.test :as test]
-   [clojure.tools.namespace.repl :refer (refresh refresh-all)]
-   [boefie-invest.morningstar]))
+   [clojure.tools.namespace.repl :refer (refresh refresh-all)]))
 
 (def system
   "A Var containing an object representing the application under
   development."
   {:tests ['boefie-invest.bigmoney-test
-           'boefie-invest.core-test
-           'boefie-invest.test.handler
+           'boefie-invest.handler-test
            'boefie-invest.database-test
            'boefie-invest.morningstar-test]})
 

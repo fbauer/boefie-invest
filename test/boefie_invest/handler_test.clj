@@ -1,4 +1,4 @@
-(ns boefie-invest.test.handler
+(ns boefie-invest.handler-test
   (:use clojure.test
         ring.mock.request
         boefie-invest.handler))
