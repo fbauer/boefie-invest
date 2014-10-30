@@ -9,8 +9,6 @@
    :foreign_keys 1
    })
 
-(defn dbg [a] (do (println a) a))
-
 ;; ## Table definitions
 
 (def table-definitions
@@ -82,7 +80,6 @@
   "Create all tables. Assumes that none of the tables exists before.
    Table definitions are taken from the table-definitions var."
   [db-spec]
-  
   (doseq [table-name (keys table-definitions)]
     (jdbc/db-do-commands
      db-spec
