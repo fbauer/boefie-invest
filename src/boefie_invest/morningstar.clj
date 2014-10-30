@@ -127,7 +127,7 @@
                  parts (clojure.string/split filename #" ")
                  isin (first parts)
                  date-added (try
-                              (parse (formatter "yyyy_MM_dd") dirname)
+                              (parse (formatter "yyyy-MM-dd") dirname)
                               (catch Exception e))]
            :when (and (.endsWith filename ".csv")
                       (= 3 (count parts))
