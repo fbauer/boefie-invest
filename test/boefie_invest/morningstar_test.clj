@@ -156,39 +156,39 @@
 (deftest test-parse-dir
   (let [my-file-seq (fn [_]
                       (map io/file
-                           ["/root/2012_04_04/ignore-this"
-                            "/root/2012_04_04/anisin Income Statement.csv"
-                            "/root/2012_04_04/anisin Balance Sheet.csv"
-                            "/root/2012_04_04/anisin Key Ratios.csv"
-                            "/root/2012_04_04/anotherisin Income Statement.csv"
-                            "/root/2012_04_04/anotherisin Balance Sheet.csv"
-                            "/root/2013_04_04/anisin Key Ratios.csv"
+                           ["/root/2012-04-04/ignore-this"
+                            "/root/2012-04-04/anisin Income Statement.csv"
+                            "/root/2012-04-04/anisin Balance Sheet.csv"
+                            "/root/2012-04-04/anisin Key Ratios.csv"
+                            "/root/2012-04-04/anotherisin Income Statement.csv"
+                            "/root/2012-04-04/anotherisin Balance Sheet.csv"
+                            "/root/2013-04-04/anisin Key Ratios.csv"
                             "/root/ignore-this/anisin Key Ratios.csv"
                             "/root/ignore-this/foobar"]))]
     (is (= (parse-dir "/root" my-file-seq)
            [{:isin "anisin"
              :type :incomestatement
-             :file (io/file "/root/2012_04_04/anisin Income Statement.csv")
+             :file (io/file "/root/2012-04-04/anisin Income Statement.csv")
              :date_added (date-time 2012 04 04)}
             {:isin "anisin"
              :type :balancesheet
-             :file (io/file "/root/2012_04_04/anisin Balance Sheet.csv")
+             :file (io/file "/root/2012-04-04/anisin Balance Sheet.csv")
              :date_added (date-time 2012 04 04)}
             {:isin "anisin"
              :type :keyratios
-             :file (io/file "/root/2012_04_04/anisin Key Ratios.csv")
+             :file (io/file "/root/2012-04-04/anisin Key Ratios.csv")
              :date_added (date-time 2012 04 04)}
             {:isin "anotherisin"
              :type :incomestatement
-             :file (io/file "/root/2012_04_04/anotherisin Income Statement.csv")
+             :file (io/file "/root/2012-04-04/anotherisin Income Statement.csv")
              :date_added (date-time 2012 04 04)}
             {:isin "anotherisin"
              :type :balancesheet
-             :file (io/file "/root/2012_04_04/anotherisin Balance Sheet.csv")
+             :file (io/file "/root/2012-04-04/anotherisin Balance Sheet.csv")
              :date_added (date-time 2012 04 04)}
             {:isin "anisin"
              :type :keyratios
-             :file (io/file "/root/2013_04_04/anisin Key Ratios.csv")
+             :file (io/file "/root/2013-04-04/anisin Key Ratios.csv")
              :date_added (date-time 2013 04 04)}]))))
 
 (deftest test-load-data
