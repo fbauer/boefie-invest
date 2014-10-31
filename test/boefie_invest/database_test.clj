@@ -1,6 +1,6 @@
 (ns boefie-invest.database-test
   (:require [clojure.test :refer :all]
-            [boefie-invest.database :refer :all]
+            [boefie-invest.db.schema :refer :all]
             [boefie-invest.bigmoney :refer [as-money]]
             [clojure.java.jdbc :as jdbc]
             [clj-time.core :refer [date-time]]
