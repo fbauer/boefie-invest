@@ -33,10 +33,6 @@
 (defn money-vec [csv-record currency]
   (vec (map #(as-money % currency) csv-record)))
 
-(defn find-first
-  [predicate coll]
-  (first (filter predicate coll)))
-
 (defn parse-morningstar
   [rows extract keys-to-symbol]
   (let [date-header (date-vec (extract (rows 1)))
