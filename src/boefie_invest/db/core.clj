@@ -5,3 +5,8 @@
 
 (defdb db schema/db-spec)
 
+(defentity isins
+  (pk :isin))
+
+(defentity securities
+  (has-one isins))

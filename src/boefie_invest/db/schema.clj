@@ -1,6 +1,5 @@
 (ns boefie-invest.db.schema
   (:require [clojure.java.jdbc :as jdbc]
-            [korma.core :refer :all]
             [noir.io :as io]))
 
 (def db-store "site.db")
@@ -19,41 +18,53 @@
               :naming {:keys clojure.string/lower-case
                        :fields clojure.string/upper-case}})
 
-(def db
+(def db-spec
   {:classname "org.sqlite.JDBC"
    :subprotocol "sqlite"
    :subname "database.db"
-   :foreign_keys 1
-   })
+   :foreign_keys 1})
 
 ;; ## Table definitions
 
 (def table-definitions
-  "## isins
+  "The database schema.
 
-   The isins table lists all valid isins. It is responsible to enforce
-   foreign key constraints. I'm not sure yet whether this is a great
-   design decision or not.
+It consists of the following tables:
 
-   ## securities
+### isins
 
-   The securities table is used to map an ISIN to the name of a
-   security. It is append-only. An ISIN can never change, but the name
-   of the corresponding security might. Therefore, the table has an
-   additional column date_added which stores the date a column has
-   been added. For equal ISINs, the most recently added row is the one
-   that should be returned on a query.
+The isins table lists all valid isins. It is responsible to enforce
+foreign key constraints. I'm not sure yet whether this is a great
+design decision or not.
 
-   ## shares
+### securities
 
-   The shares table stores the amount of shares that were available at
-   a given date.
+The securities table is used to map an ISIN to the name of a security.
+It is append-only. An ISIN can never change, but the name of the
+corresponding security might. Therefore, the table has an additional
+column date_added which stores the date a column has been added. For
+equal ISINs, the most recently added row is the one that should be
+returned on a query.
 
-   ## Sqlite implementation notes
+### shares
 
-   As sqlite has no native datetime column type, we store date_added
-   with text affinity. The value is expected to be an utf-8 encoded
-   string representation in iso datetime format and utc timezone."
+The shares table stores the amount of shares that were available at a
+given date.
+
+### amounts and per_share_amounts
+
+These two tables have an identical schema. Their intended useage
+differs. amounts stores the value a certain financial figure had at a
+certain date (per company), while per_share_amount stores the value of
+financial figures per share. Eg share price would be stored in the
+per_share_amounts table, while current assets would be stored in the
+amounts table.
+
+### Sqlite implementation notes
+
+As sqlite has no native datetime column type, we store date_added with
+text affinity. The value is expected to be an utf-8 encoded string
+representation in iso datetime format and utc timezone."
 
   {:isins [[:isin "varchar(12) not null primary key"]
            ["unique (isin) on conflict ignore"]]
@@ -118,12 +129,6 @@
 (defn add-security [db-spec sec]
   (do (jdbc/insert! db-spec :isins {:isin (sec :isin)})
       (jdbc/insert! db-spec :securities sec)))
-
-(defentity isins
-  (pk :isin))
-
-(defentity securities
-  (has-one isins))
 
 (defn db-read-all
   [db-spec]
