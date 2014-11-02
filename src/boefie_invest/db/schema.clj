@@ -55,18 +55,18 @@
    with text affinity. The value is expected to be an utf-8 encoded
    string representation in iso datetime format and utc timezone."
 
-  {:isins [[:isin "text not null primary key"]
+  {:isins [[:isin "varchar(12) not null primary key"]
            ["unique (isin) on conflict ignore"]]
 
    :securities [[:id "integer not null primary key autoincrement"]
-                [:isin "text not null"]
+                [:isin "varchar(12) not null"]
                 [:name "text not null"]
                 [:date_added "datetime not null"]
                 ["unique (isin, name) on conflict ignore"]
                 ["foreign key(isin) references isins(isin)"]]
 
    :shares [[:id "integer not null primary key autoincrement"]
-            [:isin "text not null"]
+            [:isin "varchar(12) not null"]
             [:amount "integer not null"]
             [:date "datetime not null"]
             [:date_added "datetime not null"]
@@ -74,7 +74,7 @@
             ["foreign key(isin) references isins(isin)"]]
 
    :per_share_amounts [[:id "integer not null primary key autoincrement"]
-                       [:isin "text not null"]
+                       [:isin "varchar(12) not null"]
                        [:name "text not null"]
                        [:currency "text not null"]
                        [:amount "integer not null"]
@@ -84,7 +84,7 @@
                        ["foreign key(isin) references isins(isin)"]]
 
    :amounts [[:id "integer not null primary key autoincrement"]
-             [:isin "text not null"]
+             [:isin "varchar(12) not null"]
              [:name "text not null"]
              [:currency "text not null"]
              [:amount "integer not null"]
