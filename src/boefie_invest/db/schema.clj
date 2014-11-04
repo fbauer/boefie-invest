@@ -67,13 +67,13 @@ text affinity. The value is expected to be an utf-8 encoded string
 representation in iso datetime format and utc timezone."
 
   {:isins [[:isin "varchar(12) not null primary key"]
-           ["unique (isin) on conflict ignore"]]
+           ["unique (isin)"]]
 
    :securities [[:id "integer not null primary key autoincrement"]
                 [:isin "varchar(12) not null"]
                 [:name "text not null"]
                 [:date_added "datetime not null"]
-                ["unique (isin, name) on conflict ignore"]
+                ["unique (isin, name)"]
                 ["foreign key(isin) references isins(isin)"]]
 
    :shares [[:id "integer not null primary key autoincrement"]
@@ -81,7 +81,7 @@ representation in iso datetime format and utc timezone."
             [:amount "integer not null"]
             [:date "datetime not null"]
             [:date_added "datetime not null"]
-            ["unique (isin, amount, date) on conflict ignore"]
+            ["unique (isin, amount, date)"]
             ["foreign key(isin) references isins(isin)"]]
 
    :per_share_amounts [[:id "integer not null primary key autoincrement"]
@@ -91,7 +91,7 @@ representation in iso datetime format and utc timezone."
                        [:amount "integer not null"]
                        [:date "datetime not null"]
                        [:date_added "datetime not null"]
-                       ["unique (isin, name, currency, amount, date) on conflict ignore"]
+                       ["unique (isin, name, currency, amount, date)"]
                        ["foreign key(isin) references isins(isin)"]]
 
    :amounts [[:id "integer not null primary key autoincrement"]
@@ -101,7 +101,7 @@ representation in iso datetime format and utc timezone."
              [:amount "integer not null"]
              [:date "datetime not null"]
              [:date_added "datetime not null"]
-             ["unique (isin, name, currency, amount, date) on conflict ignore"]
+             ["unique (isin, name, currency, amount, date)"]
              ["foreign key(isin) references isins(isin)"]]})
 
 (defn init-db
@@ -126,16 +126,4 @@ representation in iso datetime format and utc timezone."
         ;; otherwise I generate foreign key constraint violations.
         [:amounts :per_share_amounts :shares :securities :isins])))
 
-(defn add-security [db-spec sec]
-  (do (jdbc/insert! db-spec :isins {:isin (sec :isin)})
-      (jdbc/insert! db-spec :securities sec)))
-
-(defn db-read-all
-  [db-spec]
-  (jdbc/query db-spec ["SELECT * FROM securities"]))
-
-(defn db-read-date
-  [db-spec read-date]
-  (jdbc/query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
-from securities where date_added <= ? group by isin " read-date]))
 

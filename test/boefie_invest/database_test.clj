@@ -49,6 +49,27 @@
 
 (use-fixtures :each database)
 
+(defn- try-insert!
+  [db-spec table row]
+  (try (jdbc/insert! db-spec table row)
+       (catch java.sql.SQLException e
+         (if (not (re-find #"UNIQUE constraint" (.getMessage e)))
+           (throw e)))))
+
+(defn add-security [db-spec sec]
+  (do (try-insert! db-spec :isins {:isin (sec :isin)})
+      (try-insert! db-spec :securities sec)))
+
+(defn db-read-all
+  [db-spec]
+  (jdbc/query db-spec ["SELECT * FROM securities"]))
+
+(defn db-read-date
+  [db-spec read-date]
+  (jdbc/query db-spec ["Select distinct id, isin, name, max(date_added) as date_added
+from securities where date_added <= ? group by isin " read-date]))
+
+
 (deftest test-init-db
   (doseq [test-conn connections]
     (is (= (jdbc/query test-conn ["PRAGMA foreign_keys;"]) '({:foreign_keys 1})))
@@ -111,3 +132,4 @@ date_added when adding a new security to the database"
 (deftest query-date-snapshots-1-2-0 (mytest [1 2 0]))
 (deftest query-date-snapshots-2-0-1 (mytest [2 0 1]))
 (deftest query-date-snapshots-2-1-0 (mytest [2 1 0]))
+
