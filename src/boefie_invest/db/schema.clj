@@ -71,7 +71,7 @@ representation in iso datetime format and utc timezone."
 
    :securities [[:id "integer not null primary key autoincrement"]
                 [:isin "varchar(12) not null"]
-                [:name "text not null"]
+                [:name "varchar(255) not null"]
                 [:date_added "datetime not null"]
                 ["unique (isin, name)"]
                 ["foreign key(isin) references isins(isin)"]]
@@ -86,8 +86,8 @@ representation in iso datetime format and utc timezone."
 
    :per_share_amounts [[:id "integer not null primary key autoincrement"]
                        [:isin "varchar(12) not null"]
-                       [:name "text not null"]
-                       [:currency "text not null"]
+                       [:name "varchar(255) not null"]
+                       [:currency "varchar(3) not null"]
                        [:amount "integer not null"]
                        [:date "datetime not null"]
                        [:date_added "datetime not null"]
@@ -96,8 +96,8 @@ representation in iso datetime format and utc timezone."
 
    :amounts [[:id "integer not null primary key autoincrement"]
              [:isin "varchar(12) not null"]
-             [:name "text not null"]
-             [:currency "text not null"]
+             [:name "varchar(255) not null"]
+             [:currency "varchar(3) not null"]
              [:amount "integer not null"]
              [:date "datetime not null"]
              [:date_added "datetime not null"]
