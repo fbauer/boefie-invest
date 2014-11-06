@@ -16,6 +16,7 @@
                  [selmer "0.7.2"]
                  [prone "0.6.0"]
                  [org.clojure/java.jdbc "0.3.6"]
+                 [lobos "1.0.0-beta3"]
                  [com.taoensso/tower "3.0.2"]
                  [log4j "1.2.17" :exclusions [javax.mail/mail
                                               javax.jms/jms

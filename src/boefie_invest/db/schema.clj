@@ -1,6 +1,8 @@
 (ns boefie-invest.db.schema
   (:require [clojure.java.jdbc :as jdbc]
-            [noir.io :as io]))
+            [noir.io :as io]
+            [lobos.schema :refer [table integer timestamp varchar unique]]
+            [lobos.core :refer [create drop]]))
 
 (def db-store "site.db")
 
@@ -15,8 +17,7 @@
               :user "sa"
               :password ""
               :make-pool? true
-              :naming {:keys clojure.string/lower-case
-                       :fields clojure.string/upper-case}})
+              })
 
 (def db-spec
   {:classname "org.sqlite.JDBC"
@@ -66,64 +67,56 @@ As sqlite has no native datetime column type, we store date_added with
 text affinity. The value is expected to be an utf-8 encoded string
 representation in iso datetime format and utc timezone."
 
-  {:isins [[:isin "varchar(12) not null primary key"]
-           ["unique (isin)"]]
+  [(table :isins
+          (varchar :isin 12 :not-null :primary-key :unique))
+   
+   (table :securities
+          (integer :id :not-null :primary-key :auto-inc)
+          (varchar :isin 12 :not-null [:refer :isins :isin])
+          (varchar :name  200 :not-null)
+          (timestamp :date_added :not-null)
+          (unique [:isin :name]))
 
-   :securities [[:id "integer not null primary key autoincrement"]
-                [:isin "varchar(12) not null"]
-                [:name "varchar(255) not null"]
-                [:date_added "datetime not null"]
-                ["unique (isin, name)"]
-                ["foreign key(isin) references isins(isin)"]]
-
-   :shares [[:id "integer not null primary key autoincrement"]
-            [:isin "varchar(12) not null"]
-            [:amount "integer not null"]
-            [:date "datetime not null"]
-            [:date_added "datetime not null"]
-            ["unique (isin, amount, date)"]
-            ["foreign key(isin) references isins(isin)"]]
-
-   :per_share_amounts [[:id "integer not null primary key autoincrement"]
-                       [:isin "varchar(12) not null"]
-                       [:name "varchar(255) not null"]
-                       [:currency "varchar(3) not null"]
-                       [:amount "integer not null"]
-                       [:date "datetime not null"]
-                       [:date_added "datetime not null"]
-                       ["unique (isin, name, currency, amount, date)"]
-                       ["foreign key(isin) references isins(isin)"]]
-
-   :amounts [[:id "integer not null primary key autoincrement"]
-             [:isin "varchar(12) not null"]
-             [:name "varchar(255) not null"]
-             [:currency "varchar(3) not null"]
-             [:amount "integer not null"]
-             [:date "datetime not null"]
-             [:date_added "datetime not null"]
-             ["unique (isin, name, currency, amount, date)"]
-             ["foreign key(isin) references isins(isin)"]]})
+   (table :shares
+          (integer :id :not-null :primary-key :auto-inc)
+          (varchar :isin 12 :not-null [:refer :isins :isin])
+          (integer :amount  :not-null)
+          (timestamp :date :not-null)
+          (timestamp :date_added :not-null)
+          (unique [:isin :amount :date]))
+   
+   (table :per_share_amounts
+          (integer :id :not-null :primary-key :auto-inc)
+          (varchar :isin 12 :not-null [:refer :isins :isin])
+          (varchar :name  200 :not-null)
+          (varchar :currency  3 :not-null)
+          (integer :amount  :not-null)
+          (timestamp :date :not-null)
+          (timestamp :date_added :not-null)
+          (unique [:isin :name :currency :amount :date]))
+   
+   (table :amounts
+          (integer :id :not-null :primary-key :auto-inc)
+          (varchar :isin 12 :not-null  [:refer :isins :isin])
+          (varchar :name  200 :not-null)
+          (varchar :currency  3 :not-null)
+          (integer :amount  :not-null)
+          (timestamp :date :not-null)
+          (timestamp :date_added :not-null)
+          (unique [:isin :name :currency :amount :date]))])
 
 (defn init-db
   "Create all tables. Assumes that none of the tables exists before.
    Table definitions are taken from the table-definitions var."
   [db-spec]
-  (doseq [table-name (keys table-definitions)]
-    (jdbc/db-do-commands
-     db-spec
-     (apply jdbc/create-table-ddl table-name
-            (table-definitions table-name)))))
+  (doseq [table-def table-definitions]
+    (create db-spec table-def)))
 
 (defn kill-db
-  "Drop all tables defined in table-definitions."
+  "Drop all tables"
   [db-spec]
-  (apply jdbc/db-do-commands
-   db-spec
-   (map #(format "DROP TABLE IF EXISTS %s"(jdbc/as-sql-name identity %))
-        ;; Vector of table names as defined in table-definitions. I
-        ;; can't use (key table-definitions) as I need to drop tables
-        ;; in the correct order. :isins needs to be dropped last,
-        ;; otherwise I generate foreign key constraint violations.
-        [:amounts :per_share_amounts :shares :securities :isins])))
+  (doseq [table-name
+          [:amounts :per_share_amounts :shares :securities :isins]]
+    (try (drop db-spec (table table-name)) (catch java.sql.SQLException e))))
 
 
