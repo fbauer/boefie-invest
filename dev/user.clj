@@ -17,7 +17,8 @@
   development."
   {:tests ['boefie-invest.bigmoney-test
            'boefie-invest.handler-test
-           'boefie-invest.database-test
+           'boefie-invest.db.schema-test
+           'boefie-invest.db.core-test
            'boefie-invest.morningstar-test]})
 
 (defn init
