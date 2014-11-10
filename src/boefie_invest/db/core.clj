@@ -9,11 +9,26 @@
 (defentity isins
   (pk :isin))
 
+(defn dates-to-sql
+  [{date-added :date_added date :date :as v}]
+  (merge v
+         (if date-added {:date_added (to-sql-time date-added)})
+         (if date {:date (to-sql-time date)})))
+
+(defn dates-to-date-time
+  [{date-added :date_added date :date :as v}]
+  (merge v
+         (if date-added {:date_added (to-date-time date-added)})
+         (if date {:date (to-date-time date)})))
 
 (defentity securities
   (has-one isins)
-  (entity-fields :date_added :name :isin)
-  (prepare (fn [{date-added :date_added :as v}]
-             (assoc v :date_added (to-sql-time date-added))))
-  (transform (fn [{date-added :date_added :as v}]
-               (assoc v :date_added (to-date-time date-added)))))
+  (entity-fields :isin :name :date_added)
+  (prepare dates-to-sql)
+  (transform dates-to-date-time))
+
+(defentity shares
+  (has-one isins)
+  (entity-fields :isin :amount :date :date_added)
+  (prepare dates-to-sql)
+  (transform dates-to-date-time))
