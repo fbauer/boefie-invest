@@ -29,6 +29,35 @@
                                                            {:isin "isin-1"}]))))
           (is (= [{:isin "isin-1"}] (select isins))))))))
 
+(deftest test-securities-entity
+  (doseq [test-conn connections]
+    (testing (format "Test table securities in db %s" (:subprotocol test-conn))
+      (let [isins (korma.core/database dbc/isins test-conn)
+            securities (korma.core/database dbc/securities test-conn)
+            security-1 {:name "security-1" :isin "isin-1"
+                        :date_added (date-time 2014 10 10)}
+            security-2 {:name "security-2" :isin "isin-1"
+                        :date_added (date-time 2014 10 10)}
+            security-3 {:name "security-1" :isin "isin-1"
+                        :date_added (date-time 2014 10 10)}]
+        ;; setup
+        (insert isins (values [{:isin "isin-1"}]))
+        
+        (testing "Insertion of first security succeeds"
+          (insert securities (values [security-1]))
+          (is (= [security-1] (select securities))))
+        
+        (testing "Insertion of same security throws SQLException"
+          (is (thrown? SQLException (insert securities (values [security-1])))))
+
+        (testing "Insertion of security with same isin and name throws SQLException"
+          (is (thrown? SQLException (insert securities (values [security-3])))))
+        
+        (testing "Insertion of same security within transaction inserts nothing"
+          (is (thrown? SQLException (insert securities (values [security-2
+                                                                security-1]))))
+          (is (= [security-1] (select securities))))))))
+
 (defn- try-insert!
   [db-spec table row]
   (try (jdbc/insert! db-spec table row :entities (jdbc/quoted \"))
