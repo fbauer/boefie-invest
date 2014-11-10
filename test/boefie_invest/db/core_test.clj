@@ -1,8 +1,10 @@
 (ns boefie-invest.db.core-test
   (:require [clojure.test :refer :all]
-            [boefie-invest.db.schema :refer :all]
+            [boefie-invest.db.core :as dbc]
             [boefie-invest.db.fixtures :refer [database connections]]
             [boefie-invest.bigmoney :refer [as-money]]
+            [korma.core :refer [insert values select]]
+            [korma.db :only [defdb]]
             [clojure.java.jdbc :as jdbc]
             [clj-time.core :refer [date-time]]
             [clj-time.coerce :refer [to-sql-time to-date-time]]
@@ -10,6 +12,22 @@
   (:import [java.sql SQLException]))
 
 (use-fixtures :each database)
+
+(deftest test-isins-entity
+  (doseq [test-conn connections]
+    (testing (format "Test table isins in db %s" (:subprotocol test-conn))
+      (let [isins (korma.core/database dbc/isins test-conn)]
+        (testing "Insertion of first isin succeeds"
+          (insert isins (values [{:isin "isin-1"}]))
+          (is (= [{:isin "isin-1"}] (select isins))))
+        
+        (testing "Insertion of same isin throws SQLException"
+          (is (thrown? SQLException (insert isins (values [{:isin "isin-1"}])))))
+        
+        (testing "Insertion of same isin within transaction inserts nothing"
+          (is (thrown? SQLException (insert isins (values [{:isin "isin-2"}
+                                                           {:isin "isin-1"}]))))
+          (is (= [{:isin "isin-1"}] (select isins))))))))
 
 (defn- try-insert!
   [db-spec table row]

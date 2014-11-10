@@ -48,7 +48,6 @@ date_added when adding a new security to the database"
          {:name "revenue" :isin "de1234567890"})))
 
 (deftest test-db-empty
-  "loading test data succeeds"
   (doseq [test-conn connections]
     (is (= (db-read-all test-conn) []))))
 
