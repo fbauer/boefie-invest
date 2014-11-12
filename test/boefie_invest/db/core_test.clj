@@ -13,6 +13,12 @@
 
 (use-fixtures :each database)
 
+(defn- insert-no-print
+  "Sqlkorma prints exceptions to *out* before rethrowing them.
+This helper suppresses that for inserts that should throw an Exception."
+  [table the-values]
+  (with-out-str (insert table (values the-values))))
+
 (deftest test-isins-entity
   (doseq [test-conn connections]
     (testing (format "Test table isins in db %s" (:subprotocol test-conn))
@@ -22,11 +28,11 @@
           (is (= [{:isin "isin-1"}] (select isins))))
         
         (testing "Insertion of same isin throws SQLException"
-          (is (thrown? SQLException (insert isins (values [{:isin "isin-1"}])))))
+          (is (thrown? SQLException (insert-no-print isins [{:isin "isin-1"}]))))
         
         (testing "Insertion of same isin within transaction inserts nothing"
-          (is (thrown? SQLException (insert isins (values [{:isin "isin-2"}
-                                                           {:isin "isin-1"}]))))
+          (is (thrown? SQLException (insert-no-print isins [{:isin "isin-2"}
+                                                            {:isin "isin-1"}])))
           (is (= [{:isin "isin-1"}] (select isins))))))))
 
 (defn test-entity
@@ -43,14 +49,13 @@
           (is (= [item1] (select shares))))
         
         (testing "Insertion of same item throws SQLException"
-          (is (thrown? SQLException (insert shares (values [item1])))))
+          (is (thrown? SQLException (insert-no-print shares [item1]))))
 
         (testing "Insertion of item that just differs in :date_added throws SQLException"
-          (is (thrown? SQLException (insert shares (values [item3])))))
+          (is (thrown? SQLException (insert-no-print shares [item3]))))
         
         (testing "Insertion of same item within transaction inserts nothing"
-          (is (thrown? SQLException (insert shares (values [item2
-                                                            item1]))))
+          (is (thrown? SQLException (insert-no-print shares [item2 item1])))
           (is (= [item1] (select shares))))))))
 
 (deftest test-securities-entity
@@ -72,6 +77,85 @@
     :date (date-time 2014 10 2)
     :date_added (date-time 2014 10 10)}
    {:amount 20000 :isin "isin-1"
+    :date (date-time 2014 10 1)
+    :date_added (date-time 2014 10 11)}))
+
+(deftest test-to-bigmoney
+  (are [expected input] (= expected (dbc/to-bigmoney input))
+       {:amount (as-money "10" "EUR")}
+       {:amount 10 :scale 0 :currency "EUR"}
+       
+       {:amount (as-money "10.10" "EUR")}
+       {:amount 1010 :scale 2 :currency "EUR"}
+       
+       {:amount (as-money "10.5" "EUR")}
+       {:amount 105 :scale 1 :currency "EUR"}
+       
+       {:name "a financial amount"
+        :amount (as-money "20000.1245" "EUR")
+        :isin "isin-1"
+        :date (date-time 2014 10 1)
+        :date_added (date-time 2014 10 10)}
+       {:name "a financial amount"
+        :isin "isin-1"
+        :scale 4
+        :amount 200001245
+        :currency "EUR"
+        :date (date-time 2014 10 1)
+        :date_added (date-time 2014 10 10)}))
+
+(deftest test-from-bigmoney
+  (are [expected input] (= expected (dbc/from-bigmoney input))
+       {:amount 1010 :scale 2 :currency "EUR"}
+       {:amount (as-money "10.10" "EUR")}
+       {:name "a financial amount"
+        :isin "isin-1"
+        :scale 4
+        :amount 200001245
+        :currency "EUR"
+        :date (date-time 2014 10 1)
+        :date_added (date-time 2014 10 10)}
+       {:name "a financial amount"
+        :amount (as-money "20000.1245" "EUR")
+        :isin "isin-1"
+        :date (date-time 2014 10 1)
+        :date_added (date-time 2014 10 10)}))
+
+(deftest test-amounts-entity
+  (test-entity
+   dbc/amounts
+   {:name "a financial amount"
+    :amount (as-money "20000.1245" "EUR")
+    :isin "isin-1"
+    :date (date-time 2014 10 1)
+    :date_added (date-time 2014 10 10)}
+   {:name "another financial amount"
+    :amount (as-money "30000.1245" "EUR")
+    :isin "isin-1"
+    :date (date-time 2014 10 2)
+    :date_added (date-time 2014 10 10)}
+   {:name "a financial amount"
+    :amount (as-money "20000.1245" "EUR")
+    :isin "isin-1"
+    :date (date-time 2014 10 1)
+    :date_added (date-time 2014 10 11)}))
+
+(deftest test-per-share-amounts-entity
+  (test-entity
+   dbc/per_share_amounts
+   {:name "a financial amount"
+    :amount (as-money "20000.1245" "EUR")
+    :isin "isin-1"
+    :date (date-time 2014 10 1)
+    :date_added (date-time 2014 10 10)}
+   {:name "another financial amount"
+    :amount (as-money "30000.1245" "EUR")
+    :isin "isin-1"
+    :date (date-time 2014 10 2)
+    :date_added (date-time 2014 10 10)}
+   {:name "a financial amount"
+    :amount (as-money "20000.1245" "EUR")
+    :isin "isin-1"
     :date (date-time 2014 10 1)
     :date_added (date-time 2014 10 11)}))
 

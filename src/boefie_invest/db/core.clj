@@ -2,7 +2,10 @@
   (:use korma.core
         [korma.db :only (defdb)])
   (:require [boefie-invest.db.schema :as schema]
-            [clj-time.coerce :refer [to-sql-time to-date-time]]))
+            [boefie-invest.bigmoney :refer [as-money]]
+            [clj-time.coerce :refer [to-sql-time to-date-time]])
+  (:import [org.joda.money CurrencyUnit]
+           [org.joda.money BigMoney]))
 
 ;;(defdb db schema/db-spec)
 
@@ -21,6 +24,22 @@
          (if date-added {:date_added (to-date-time date-added)})
          (if date {:date (to-date-time date)})))
 
+(defn to-bigmoney
+  [{amount :amount currency :currency scale :scale :as v}]
+  (merge (dissoc v :currency :scale :amount)
+         (if (and amount currency scale)
+           {:amount (BigMoney/ofScale (CurrencyUnit/of currency)
+                                      (.longValue amount)
+                                      (.longValue scale))})))
+
+(defn from-bigmoney
+  [{amount :amount :as v}]
+  (merge v
+         (if amount
+           {:currency (.getCode (.getCurrencyUnit amount))
+            :scale (.longValue (.getScale amount))
+            :amount (.longValue (.unscaledValue (.getAmount amount)))})))
+
 (defentity securities
   (has-one isins)
   (entity-fields :isin :name :date_added)
@@ -31,4 +50,20 @@
   (has-one isins)
   (entity-fields :isin :amount :date :date_added)
   (prepare dates-to-sql)
+  (transform dates-to-date-time))
+
+(defentity amounts
+  (has-one isins)
+  (entity-fields :isin :name :amount :scale :currency :date :date_added)
+  (prepare dates-to-sql)
+  (prepare from-bigmoney)
+  (transform to-bigmoney)
+  (transform dates-to-date-time))
+
+(defentity per_share_amounts
+  (has-one isins)
+  (entity-fields :isin :name :amount :scale :currency :date :date_added)
+  (prepare dates-to-sql)
+  (prepare from-bigmoney)
+  (transform to-bigmoney)
   (transform dates-to-date-time))
