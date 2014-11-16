@@ -42,19 +42,16 @@
 
 (defentity securities
   (has-one isins)
-  (entity-fields :isin :name :date_added)
   (prepare dates-to-sql)
   (transform dates-to-date-time))
 
 (defentity shares
   (has-one isins)
-  (entity-fields :isin :amount :date :date_added)
   (prepare dates-to-sql)
   (transform dates-to-date-time))
 
 (defentity amounts
   (has-one isins)
-  (entity-fields :isin :name :amount :scale :currency :date :date_added)
   (prepare dates-to-sql)
   (prepare from-bigmoney)
   (transform to-bigmoney)
@@ -62,8 +59,26 @@
 
 (defentity per_share_amounts
   (has-one isins)
-  (entity-fields :isin :name :amount :scale :currency :date :date_added)
   (prepare dates-to-sql)
   (prepare from-bigmoney)
   (transform to-bigmoney)
   (transform dates-to-date-time))
+
+(defn select-securities
+  [securities]
+  (select securities (fields :isin :name :date_added)))
+
+(defn select-shares
+  [shares]
+  (select shares 
+          (fields :isin :amount :date :date_added)))
+
+(defn select-amounts
+  [amounts]
+  (select amounts
+          (fields :isin :name :amount :scale :currency :date :date_added)))
+
+(defn select-per-share-amounts
+  [per_share_amounts]
+  (select per_share_amounts
+          (fields :isin :name :amount :scale :currency :date :date_added)))
