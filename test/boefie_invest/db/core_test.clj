@@ -168,14 +168,14 @@ This helper suppresses that for inserts that should throw an Exception."
 
 (defn db-read-date
   [securities read-date]
-  (defentity sel2 (table (subselect securities) :sel2))
+  (defentity sel2 (table (subselect securities
+                                    (where {:date_added [<= (to-sql-time read-date)]})) :sel2))
   (select securities
           (fields :securities.date_added :securities.name :securities.isin)
           (join sel2 {:securities.date_added [< :sel2.date_added]
                       :securities.isin [= :sel2.isin]})
           (where {:sel2.isin nil
                   :date_added [<= (to-sql-time read-date)]})))
-
 
 (defn mytest
   [order]
