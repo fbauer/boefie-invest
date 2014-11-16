@@ -39,7 +39,7 @@ This helper suppresses that for inserts that should throw an Exception."
           (is (= [{:isin "isin-1"}] (select isins))))))))
 
 (defn test-entity
-  [entity select-fn item1 item2 item3]
+  [entity item1 item2 item3]
   (doseq [test-conn connections]
     (testing (format "Test table %s in db %s.\n" (:name entity) (:subprotocol test-conn))
       (let [isins (korma.core/database dbc/isins test-conn)
@@ -49,7 +49,7 @@ This helper suppresses that for inserts that should throw an Exception."
         
         (testing (format "Insertion of first item succeeds" my-entity)
           (insert my-entity (values [item1]))
-          (is (= [item1] (select-fn my-entity))))
+          (is (= [item1] (dbc/select-all my-entity))))
         
         (testing "Insertion of same item throws SQLException"
           (is (thrown? SQLException (insert-no-print my-entity [item1]))))
@@ -59,22 +59,21 @@ This helper suppresses that for inserts that should throw an Exception."
         
         (testing "Insertion of same item within transaction inserts nothing"
           (is (thrown? SQLException (insert-no-print my-entity [item2 item1])))
-          (is (= [item1] (select-fn my-entity))))))))
+          (is (= [item1] (dbc/select-all my-entity))))))))
 
 (deftest test-securities-entity
-  (test-entity dbc/securities
-               dbc/select-securities
-               {:name "security-1" :isin "isin-1"
-                :date_added (date-time 2014 10 1)}
-               {:name "security-2" :isin "isin-1"
-                :date_added (date-time 2014 10 10)}
-               {:name "security-1" :isin "isin-1"
-                :date_added (date-time 2014 10 2)}))
+  (test-entity
+   dbc/securities
+   {:name "security-1" :isin "isin-1"
+    :date_added (date-time 2014 10 1)}
+   {:name "security-2" :isin "isin-1"
+    :date_added (date-time 2014 10 10)}
+   {:name "security-1" :isin "isin-1"
+    :date_added (date-time 2014 10 2)}))
 
 (deftest test-shares-entity
   (test-entity
    dbc/shares
-   dbc/select-shares
    {:amount 20000 :isin "isin-1"
     :date (date-time 2014 10 1)
     :date_added (date-time 2014 10 10)}
@@ -129,7 +128,6 @@ This helper suppresses that for inserts that should throw an Exception."
 (deftest test-amounts-entity
   (test-entity
    dbc/amounts
-   dbc/select-amounts
    {:name "a financial amount"
     :amount (as-money "20000.1245" "EUR")
     :isin "isin-1"
@@ -149,7 +147,6 @@ This helper suppresses that for inserts that should throw an Exception."
 (deftest test-per-share-amounts-entity
   (test-entity
    dbc/per_share_amounts
-   dbc/select-per-share-amounts
    {:name "a financial amount"
     :amount (as-money "20000.1245" "EUR")
     :isin "isin-1"
@@ -168,8 +165,10 @@ This helper suppresses that for inserts that should throw an Exception."
 
 (defn db-read-date
   [securities read-date]
-  (defentity sel2 (table (subselect securities
-                                    (where {:date_added [<= (to-sql-time read-date)]})) :sel2))
+  (defentity sel2
+    (table (subselect
+            securities
+            (where {:date_added [<= (to-sql-time read-date)]})) :sel2))
   (select securities
           (fields :securities.date_added :securities.name :securities.isin)
           (join sel2 {:securities.date_added [< :sel2.date_added]
@@ -199,7 +198,7 @@ This helper suppresses that for inserts that should throw an Exception."
         (is (= [] (select securities))
             "Sanity check that db is empty. Must never fail.")
         (insert securities (values (map rows order)))
-        (is (= #{res1 res2 res3} (set (dbc/select-securities securities)))
+        (is (= #{res1 res2 res3} (set (dbc/select-all securities)))
             "There should be 3 rows in the securities table.")
         (testing (str "Insertion Order:\n"
                       (clojure.string/join "\n" (map rows order)))

@@ -64,21 +64,23 @@
   (transform to-bigmoney)
   (transform dates-to-date-time))
 
-(defn select-securities
+(defmulti select-all :table)
+
+(defmethod select-all "securities"
   [securities]
   (select securities (fields :isin :name :date_added)))
 
-(defn select-shares
+(defmethod select-all "shares"
   [shares]
   (select shares 
           (fields :isin :amount :date :date_added)))
 
-(defn select-amounts
+(defmethod select-all "amounts"
   [amounts]
   (select amounts
           (fields :isin :name :amount :scale :currency :date :date_added)))
 
-(defn select-per-share-amounts
+(defmethod select-all "per_share_amounts"
   [per_share_amounts]
   (select per_share_amounts
           (fields :isin :name :amount :scale :currency :date :date_added)))
