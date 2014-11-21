@@ -244,32 +244,32 @@ This helper suppresses that for inserts that should throw an Exception."
           (is (= another-row (second results)))
           (is (= 2 (count results))))))))
 
-(deftest test-insert-if-new-for-securities
+(defn check-insert-if-new
+  [entity a-row another-row row-with-date]
   (doseq [test-conn connections]
     (let [isins (korma.core/database dbc/isins test-conn)
-          securities (korma.core/database dbc/securities test-conn)
+          my-entity (korma.core/database entity test-conn)
           ;; we move before-inserts 1 second into the past to allow
-          ;; for databases with 1 second granularity in the time stamps
+          ;; for databases with 1 second granularity in the time
+          ;; stamps
           before-inserts (clj-time.core/minus (now) (clj-time.core/seconds 1))
-          a-row {:isin "ab1234567890" :name "foobar"}
-          row-with-date {:isin "de1234567890" :name "barbaz"
-                         :date_added before-inserts}
-          another-row {:isin "de1234567890" :name "new name"}]
+          row-with-date (assoc row-with-date :date_added before-inserts)
+]
       (insert isins (values [{:isin "ab1234567890"}
                              {:isin "de1234567890"}]))
       (is (= [{:isin "ab1234567890"} {:isin "de1234567890"}]
              (dbc/select-all isins)))
 
       (testing "default date_added is now"
-        (dbc/insert-if-new securities [a-row])
-        (let [first-result (first (dbc/select-all securities))]
+        (dbc/insert-if-new my-entity [a-row])
+        (let [first-result (first (dbc/select-all my-entity))]
+          (is (= a-row (dissoc first-result :date_added)))
           (is (contains? first-result :date_added))
-          (is (before? before-inserts (:date_added a-row)))
-          (is (= a-row (dissoc first-result :date_added)))))
+          (is (before? before-inserts (:date_added a-row)))))
 
       (testing "date_added can be set explicitly"
-        (dbc/insert-if-new securities [row-with-date])
-        (let [results (dbc/select-all securities)
+        (dbc/insert-if-new my-entity [row-with-date])
+        (let [results (dbc/select-all my-entity)
               first-result (first results)]
           (is (contains? first-result :date_added))
           (is (before? before-inserts (:date_added a-row)))
@@ -278,8 +278,8 @@ This helper suppresses that for inserts that should throw an Exception."
           (is (= 2 (count results)))))
 
       (testing "adding an existing row has no effect"
-        (dbc/insert-if-new securities [row-with-date])
-        (let [results (dbc/select-all securities)
+        (dbc/insert-if-new my-entity [row-with-date])
+        (let [results (dbc/select-all my-entity)
               first-result (first results)]
           (is (contains? first-result :date_added))
           (is (before? before-inserts (:date_added a-row)))
@@ -288,8 +288,8 @@ This helper suppresses that for inserts that should throw an Exception."
           (is (= 2 (count results)))))
       
       (testing "existing rows are ignored, but the rest of them are inserted"
-        (dbc/insert-if-new securities [row-with-date a-row another-row a-row])
-        (let [results (dbc/select-all securities)
+        (dbc/insert-if-new my-entity [row-with-date a-row another-row a-row])
+        (let [results (dbc/select-all my-entity)
               first-result (first results)
               third-result (nth results 2)]
           (is (contains? first-result :date_added))
@@ -298,3 +298,18 @@ This helper suppresses that for inserts that should throw an Exception."
           (is (= row-with-date (second results)))
           (is (= another-row (dissoc third-result :date_added)))
           (is (= 3 (count results))))))))
+
+(deftest test-insert-if-new-for-securities
+  (check-insert-if-new dbc/securities
+                       {:isin "ab1234567890" :name "foobar"}
+                       {:isin "de1234567890" :name "new name"}
+                       {:isin "de1234567890" :name "barbaz"}))
+
+(deftest test-insert-if-new-for-shares
+  (check-insert-if-new dbc/shares
+                       {:isin "ab1234567890" :amount 10
+                        :date (date-time 2014 10 9)}
+                       {:isin "de1234567890" :amount 20
+                        :date (date-time 2014 10 9)}
+                       {:isin "de1234567890" :amount 30
+                        :date (date-time 2014 10 9)}))

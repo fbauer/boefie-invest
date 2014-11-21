@@ -108,4 +108,10 @@ Items that are already in the table are ignored"
   ;; This implementation has the advantage that I understand it and is
   ;; achievable with my level of SQL knowledge.
   (doseq [row rows]
-    (try (with-out-str (insert entity (values row))) (catch SQLException e))))
+    (try (with-out-str (insert entity (values row)))
+         (catch SQLException e
+           (if (not (or (= (.getSQLState e) "23505")
+                        (re-find #"UNIQUE constraint" (.getMessage e))))
+             (throw e))))))
+
+         

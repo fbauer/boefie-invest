@@ -84,7 +84,7 @@ representation in iso datetime format and utc timezone."
           (varchar :isin 12 :not-null [:refer :isins :isin])
           (integer :amount  :not-null)
           (timestamp :date :not-null)
-          (timestamp :date_added :not-null)
+          (timestamp :date_added :not-null (default (now)))
           (unique [:isin :amount :date]))
    
    (table :per_share_amounts
