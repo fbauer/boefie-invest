@@ -271,7 +271,7 @@ This helper suppresses that for inserts that should throw an Exception."
                                        a-row])
         (let [results (dbc/select-all securities)
               first-result (first results)
-              third-result (nth 3 results)]
+              third-result (nth results 2)]
           (is (contains? first-result :date_added))
           (is (before? before-inserts (:date_added a-row)))
           (is (= [a-row] [(dissoc first-result :date_added)]))

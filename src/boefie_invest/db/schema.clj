@@ -76,7 +76,7 @@ representation in iso datetime format and utc timezone."
           (integer :id :not-null :primary-key :auto-inc)
           (varchar :isin 12 :not-null [:refer :isins :isin])
           (varchar :name  200 :not-null)
-          (timestamp :date_added :not-null ( default (now)))
+          (timestamp :date_added :not-null (default (now)))
           (unique [:isin :name]))
 
    (table :shares

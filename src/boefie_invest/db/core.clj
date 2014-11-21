@@ -5,7 +5,8 @@
             [boefie-invest.bigmoney :refer [as-money]]
             [clj-time.coerce :refer [to-sql-time to-date-time]])
   (:import [org.joda.money CurrencyUnit]
-           [org.joda.money BigMoney]))
+           [org.joda.money BigMoney]
+           [java.sql SQLException]))
 
 ;;(defdb db schema/db-spec)
 
@@ -99,4 +100,12 @@ This multimethod returns sensible default columns."
 
 Items that are already in the table are ignored"
   [entity rows]
-  (insert entity (values rows)))
+  ;; FIXME: This is the naive low perfomance implementation
+  ;; Insert each row on its own, catch db errors. It would be much
+  ;; nicer to let the database do the work of deduplication, and
+  ;; probably more efficient as well.
+  ;;
+  ;; This implementation has the advantage that I understand it and is
+  ;; achievable with my level of SQL knowledge.
+  (doseq [row rows]
+    (try (with-out-str (insert entity (values row))) (catch SQLException e))))
