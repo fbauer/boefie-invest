@@ -9,7 +9,7 @@
                                 dry-run]]
             [korma.db :only [defdb]]
             [clojure.java.jdbc :as jdbc]
-            [clj-time.core :refer [date-time]]
+            [clj-time.core :refer [date-time today now before?]]
             [clj-time.coerce :refer [to-sql-time to-date-time]]
             [clojure.java.io :refer [resource]])
   (:import [java.sql SQLException]))
@@ -29,10 +29,10 @@ This helper suppresses that for inserts that should throw an Exception."
         (testing "Insertion of first isin succeeds"
           (insert isins (values [{:isin "isin-1"}]))
           (is (= [{:isin "isin-1"}] (select isins))))
-        
+
         (testing "Insertion of same isin throws SQLException"
           (is (thrown? SQLException (insert-no-print isins [{:isin "isin-1"}]))))
-        
+
         (testing "Insertion of same isin within transaction inserts nothing"
           (is (thrown? SQLException (insert-no-print isins [{:isin "isin-2"}
                                                             {:isin "isin-1"}])))
@@ -46,17 +46,17 @@ This helper suppresses that for inserts that should throw an Exception."
             my-entity (korma.core/database entity test-conn)]
         ;; setup
         (insert isins (values [{:isin "isin-1"}]))
-        
+
         (testing (format "Insertion of first item succeeds" my-entity)
           (insert my-entity (values [item1]))
           (is (= [item1] (dbc/select-all my-entity))))
-        
+
         (testing "Insertion of same item throws SQLException"
           (is (thrown? SQLException (insert-no-print my-entity [item1]))))
 
         (testing "Insertion of item that just differs in :date_added throws SQLException"
           (is (thrown? SQLException (insert-no-print my-entity [item3]))))
-        
+
         (testing "Insertion of same item within transaction inserts nothing"
           (is (thrown? SQLException (insert-no-print my-entity [item2 item1])))
           (is (= [item1] (dbc/select-all my-entity))))))))
@@ -88,13 +88,13 @@ This helper suppresses that for inserts that should throw an Exception."
   (are [expected input] (= expected (dbc/to-bigmoney input))
        {:amount (as-money "10" "EUR")}
        {:amount 10 :scale 0 :currency "EUR"}
-       
+
        {:amount (as-money "10.10" "EUR")}
        {:amount 1010 :scale 2 :currency "EUR"}
-       
+
        {:amount (as-money "10.5" "EUR")}
        {:amount 105 :scale 1 :currency "EUR"}
-       
+
        {:name "a financial amount"
         :amount (as-money "20000.1245" "EUR")
         :isin "isin-1"
@@ -219,3 +219,62 @@ This helper suppresses that for inserts that should throw an Exception."
 (deftest query-date-snapshots-2-0-1 (mytest [2 0 1]))
 (deftest query-date-snapshots-2-1-0 (mytest [2 1 0]))
 
+
+(deftest test-insert-if-new
+  (doseq [test-conn connections]
+    (let [isins (korma.core/database dbc/isins test-conn)
+          securities (korma.core/database dbc/securities test-conn)
+          ;; we move before-inserts 1 second into the past to allow
+          ;; for databases with 1 second granularity in the time stamps
+
+          before-inserts (clj-time.core/minus (now) (clj-time.core/seconds 1))
+          a-row {:isin "ab1234567890" :name "foobar"}
+          row-with-date {:isin "de1234567890" :name "barbaz"
+                         :date_added before-inserts}
+          another-row {:isin "de1234567890" :name "new name"}]
+      (insert isins (values [{:isin "ab1234567890"}
+                             {:isin "de1234567890"}]))
+      (is (= [{:isin "ab1234567890"} {:isin "de1234567890"}]
+             (dbc/select-all isins)))
+
+      (testing "default date_added is now"
+        (dbc/insert-if-new securities [a-row])
+        (let [first-result (first (dbc/select-all securities))]
+          (is (contains? first-result :date_added))
+          (is (before? before-inserts (:date_added a-row)))
+          (is (= [a-row] [(dissoc first-result :date_added)]))))
+
+      (testing "date_added can be set explicitly"
+        (dbc/insert-if-new securities [row-with-date])
+        (let [results (dbc/select-all securities)
+              first-result (first results)]
+          (is (contains? first-result :date_added))
+          (is (before? before-inserts (:date_added a-row)))
+          (is (= [a-row] [(dissoc first-result :date_added)]))
+          (is (= [row-with-date] [(second results)]))
+          (is (= 2 (count results)))))
+
+      (testing "adding an existing row has no effect"
+        (dbc/insert-if-new securities [row-with-date])
+        (let [results (dbc/select-all securities)
+              first-result (first results)]
+          (is (contains? first-result :date_added))
+          (is (before? before-inserts (:date_added a-row)))
+          (is (= [a-row] [(dissoc first-result :date_added)]))
+          (is (= [row-with-date] [(second results)]))
+          (is (= 2 (count results)))))
+      
+      (testing "existing rows are ignored, but the rest of them are inserted"
+        (dbc/insert-if-new securities [row-with-date
+                                       a-row
+                                       another-row
+                                       a-row])
+        (let [results (dbc/select-all securities)
+              first-result (first results)
+              third-result (nth 3 results)]
+          (is (contains? first-result :date_added))
+          (is (before? before-inserts (:date_added a-row)))
+          (is (= [a-row] [(dissoc first-result :date_added)]))
+          (is (= [row-with-date] [(second results)]))
+          (is (= [another-row] [(dissoc third-result :date_added)]))
+          (is (= 3 (count results))))))))

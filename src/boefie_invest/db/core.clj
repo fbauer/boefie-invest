@@ -64,7 +64,16 @@
   (transform to-bigmoney)
   (transform dates-to-date-time))
 
-(defmulti select-all :table)
+(defmulti select-all
+  "Select all rows from the given table.
+
+This multimethod returns sensible default columns."
+  
+   :table)
+
+(defmethod select-all "isins"
+  [isins]
+  (select isins))
 
 (defmethod select-all "securities"
   [securities]
@@ -84,3 +93,10 @@
   [per_share_amounts]
   (select per_share_amounts
           (fields :isin :name :amount :scale :currency :date :date_added)))
+
+(defn insert-if-new
+  "Insert all new items in rows into the table represented by entity.
+
+Items that are already in the table are ignored"
+  [entity rows]
+  (insert entity (values rows)))
