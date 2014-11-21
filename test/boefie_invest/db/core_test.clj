@@ -313,3 +313,33 @@ This helper suppresses that for inserts that should throw an Exception."
                         :date (date-time 2014 10 9)}
                        {:isin "de1234567890" :amount 30
                         :date (date-time 2014 10 9)}))
+
+(deftest test-insert-if-new-for-amounts
+  (check-insert-if-new dbc/amounts
+                       {:isin "ab1234567890"
+                        :name "a financial amount"
+                        :amount (as-money "10" "EUR")
+                        :date (date-time 2014 10 9)}
+                       {:isin "de1234567890" 
+                        :amount (as-money "20" "EUR")
+                        :name "a financial amount"
+                        :date (date-time 2014 10 9)}
+                       {:isin "de1234567890" 
+                        :amount (as-money "30" "EUR")
+                        :name "a financial amount"
+                        :date (date-time 2014 10 9)}))
+
+(deftest test-insert-if-new-for-per-share-amounts
+  (check-insert-if-new dbc/amounts
+                       {:isin "ab1234567890"
+                        :name "a financial amount"
+                        :amount (as-money "10" "EUR")
+                        :date (date-time 2014 10 9)}
+                       {:isin "de1234567890" 
+                        :amount (as-money "20" "EUR")
+                        :name "a financial amount"
+                        :date (date-time 2014 10 9)}
+                       {:isin "de1234567890" 
+                        :amount (as-money "30" "EUR")
+                        :name "a financial amount"
+                        :date (date-time 2014 10 9)}))

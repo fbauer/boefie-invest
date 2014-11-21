@@ -95,7 +95,7 @@ representation in iso datetime format and utc timezone."
           (integer :amount  :not-null)
           (integer :scale  :not-null)
           (timestamp :date :not-null)
-          (timestamp :date_added :not-null)
+          (timestamp :date_added :not-null (default (now)))
           (unique [:isin :name :currency :amount :date]))
    
    (table :amounts
@@ -106,7 +106,7 @@ representation in iso datetime format and utc timezone."
           (integer :amount  :not-null)
           (integer :scale  :not-null)
           (timestamp :date :not-null)
-          (timestamp :date_added :not-null)
+          (timestamp :date_added :not-null (default (now)))
           (unique [:isin :name :currency :amount :date]))])
 
 (defn init-db
