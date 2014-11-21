@@ -219,14 +219,37 @@ This helper suppresses that for inserts that should throw an Exception."
 (deftest query-date-snapshots-2-0-1 (mytest [2 0 1]))
 (deftest query-date-snapshots-2-1-0 (mytest [2 1 0]))
 
+(deftest test-insert-if-new-for-isins
+  (doseq [test-conn connections]
+    (let [isins (korma.core/database dbc/isins test-conn)
+          a-row {:isin "ab1234567890"}
+          another-row {:isin "de1234567890"}]
 
-(deftest test-insert-if-new
+      (testing "default date_added is now"
+        (dbc/insert-if-new isins [a-row])
+        (let [results (dbc/select-all isins)]
+          (is (= [a-row] results))))
+
+      (testing "adding an existing row has no effect"
+        (dbc/insert-if-new isins [a-row])
+        (let [results (dbc/select-all isins)]
+          (is (= [a-row] results))))
+      
+      (testing "existing rows are ignored, but the rest of them are inserted"
+        (dbc/insert-if-new isins [a-row
+                                  another-row
+                                  a-row])
+        (let [results (dbc/select-all isins)]
+          (is (= a-row (first results)))
+          (is (= another-row (second results)))
+          (is (= 2 (count results))))))))
+
+(deftest test-insert-if-new-for-securities
   (doseq [test-conn connections]
     (let [isins (korma.core/database dbc/isins test-conn)
           securities (korma.core/database dbc/securities test-conn)
           ;; we move before-inserts 1 second into the past to allow
           ;; for databases with 1 second granularity in the time stamps
-
           before-inserts (clj-time.core/minus (now) (clj-time.core/seconds 1))
           a-row {:isin "ab1234567890" :name "foobar"}
           row-with-date {:isin "de1234567890" :name "barbaz"
@@ -242,7 +265,7 @@ This helper suppresses that for inserts that should throw an Exception."
         (let [first-result (first (dbc/select-all securities))]
           (is (contains? first-result :date_added))
           (is (before? before-inserts (:date_added a-row)))
-          (is (= [a-row] [(dissoc first-result :date_added)]))))
+          (is (= a-row (dissoc first-result :date_added)))))
 
       (testing "date_added can be set explicitly"
         (dbc/insert-if-new securities [row-with-date])
@@ -250,8 +273,8 @@ This helper suppresses that for inserts that should throw an Exception."
               first-result (first results)]
           (is (contains? first-result :date_added))
           (is (before? before-inserts (:date_added a-row)))
-          (is (= [a-row] [(dissoc first-result :date_added)]))
-          (is (= [row-with-date] [(second results)]))
+          (is (= a-row (dissoc first-result :date_added)))
+          (is (= row-with-date (second results)))
           (is (= 2 (count results)))))
 
       (testing "adding an existing row has no effect"
@@ -260,21 +283,18 @@ This helper suppresses that for inserts that should throw an Exception."
               first-result (first results)]
           (is (contains? first-result :date_added))
           (is (before? before-inserts (:date_added a-row)))
-          (is (= [a-row] [(dissoc first-result :date_added)]))
-          (is (= [row-with-date] [(second results)]))
+          (is (= a-row (dissoc first-result :date_added)))
+          (is (= row-with-date (second results)))
           (is (= 2 (count results)))))
       
       (testing "existing rows are ignored, but the rest of them are inserted"
-        (dbc/insert-if-new securities [row-with-date
-                                       a-row
-                                       another-row
-                                       a-row])
+        (dbc/insert-if-new securities [row-with-date a-row another-row a-row])
         (let [results (dbc/select-all securities)
               first-result (first results)
               third-result (nth results 2)]
           (is (contains? first-result :date_added))
           (is (before? before-inserts (:date_added a-row)))
-          (is (= [a-row] [(dissoc first-result :date_added)]))
-          (is (= [row-with-date] [(second results)]))
-          (is (= [another-row] [(dissoc third-result :date_added)]))
+          (is (= a-row (dissoc first-result :date_added)))
+          (is (= row-with-date (second results)))
+          (is (= another-row (dissoc third-result :date_added)))
           (is (= 3 (count results))))))))
