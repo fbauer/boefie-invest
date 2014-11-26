@@ -21,23 +21,23 @@
         result (parse-income sample-input)]
     (is (= 5 (count result)))
     (is (= result
-           [{:name :annual_sales
+           [{:name "revenue"
              :amount (as-money "1597000000" "EUR")
              :date (date-time 2008 12 01)
              :kind :amounts}
-            {:name :annual_sales
+            {:name "revenue"
              :amount (as-money "1237000000" "EUR")
              :date (date-time 2009 12 01)
              :kind :amounts}
-            {:name :annual_sales
+            {:name "revenue"
              :amount (as-money "1523000000" "EUR")
              :date (date-time 2010 12 01)
              :kind :amounts}
-            {:name :annual_sales
+            {:name "revenue"
              :amount (as-money "1759000000" "EUR")
              :date (date-time 2011 12 01)
              :kind :amounts}
-            {:name :annual_sales
+            {:name "revenue"
              :amount (as-money "1836000000" "EUR")
              :date (date-time 2012 12 01)
              :kind :amounts}]))))
@@ -66,7 +66,7 @@
         ["Fiscal year ends in December. GBP in millions except per share data."
          "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
         ["Revenue" "" "23" "" "" "" ""]]
-       [{:name :annual_sales
+       [{:name "revenue"
          :amount (as-money "23000000" "GBP")
          :date (date-time 2009 12 01)
          :kind :amounts}]))
@@ -87,51 +87,51 @@
     (is (= [{:kind :securities :name "OMV AG"}
             {:amount (as-money "5884000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :current_assets
+             :name "total current assets"
              :kind :amounts}
             {:amount (as-money "5622000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :current_assets
+             :name "total current assets"
              :kind :amounts}
             {:amount (as-money "807000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :intangibles
+             :name "intangible assets"
              :kind :amounts}
             {:amount (as-money "812000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :intangibles
+             :name "intangible assets"
              :kind :amounts}
             {:amount (as-money "21376000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :total_assets
+             :name "total assets"
              :kind :amounts}
             {:amount (as-money "21415000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :total_assets
+             :name "total assets"
              :kind :amounts}
             {:amount (as-money "5816000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :current_liabilities
+             :name "total current liabilities"
              :kind :amounts}
             {:amount (as-money "4732000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :current_liabilities
+             :name "total current liabilities"
              :kind :amounts}
             {:amount (as-money "2526000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :long_term_debt
+             :name "long-term debt"
              :kind :amounts}
             {:amount (as-money "3197000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :long_term_debt
+             :name "long-term debt"
              :kind :amounts}
             {:amount (as-money "12013000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :total_liabilities
+             :name "total liabilities"
              :kind :amounts}
             {:amount (as-money "11380000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :total_liabilities
+             :name "total liabilities"
              :kind :amounts}]
            result))))
 
@@ -148,19 +148,19 @@
         result (parse-keyratios sample-input)]
     (is (= 8 (count result)))
     (is (= result
-           [{:name :eps
+           [{:name "earnings per share"
              :amount (as-money "3.05" "EUR")
              :date (date-time 2008 12 01)
              :kind :per_share_amounts}
-            {:name :eps
+            {:name "earnings per share"
              :amount (as-money "2.85" "EUR")
              :date (date-time 2009 12 01)
              :kind :per_share_amounts}
-            {:name :dividends
+            {:name "dividends"
              :amount (as-money "0.38" "EUR")
              :date (date-time 2008 12 01)
              :kind :per_share_amounts}
-            {:name :dividends
+            {:name "dividends"
              :amount (as-money "0.56" "EUR")
              :date (date-time 2009 12 01)
              :kind :per_share_amounts}
@@ -170,11 +170,11 @@
             {:amount 4.0E7
              :date (date-time 2009 12 01)
              :kind :shares}
-            {:name :reported_book_value
+            {:name "book value per share"
              :amount (as-money "11.02" "EUR")
              :date (date-time 2008 12 01)
              :kind :per_share_amounts}
-            {:name :reported_book_value
+            {:name "book value per share"
              :amount (as-money "12.07" "EUR")
              :date (date-time 2009 12 01)
              :kind :per_share_amounts}]))))

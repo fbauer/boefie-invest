@@ -34,16 +34,16 @@
   (vec (map #(as-money % currency) csv-record)))
 
 (defn parse-morningstar
-  [rows extract keys-to-symbol]
+  [rows extract keys]
   (let [date-header (date-vec (extract (rows 1)))
         year-currency-pat #"Fiscal year ends in \w+. (\w+) in millions except per share data."
         currency (last (re-matches year-currency-pat (first (rows 1))))]
     (flatten (for [record rows
                    :when (and (> (count record) 2)
-                              (contains? keys-to-symbol (record 0)))]
+                              (contains? keys (record 0)))]
                (filter #(not (nil? (:amount %)))
                        (map #(assoc {}
-                               :name (keys-to-symbol (record 0))
+                               :name (clojure.string/lower-case (record 0))
                                :amount (multiply %1 1000000)
                                :date %2)
                             (money-vec (extract record) currency) date-header))))))
@@ -59,13 +59,13 @@
   (cons (parse-security balance)
         (map #(assoc % :kind :amounts)
              (parse-morningstar balance #(subvec % 1 (count %))
-                                {"Total current assets" :current_assets
-                                 "Total current liabilities" :current_liabilities
-                                 "Long-term debt" :long_term_debt
-                                 "Total liabilities" :total_liabilities
-                                 "Total assets" :total_assets
-                                 "Goodwill" :goodwill
-                                 "Intangible assets" :intangibles}))))
+                                #{"Total current assets"
+                                  "Total current liabilities"
+                                  "Long-term debt"
+                                  "Total liabilities"
+                                  "Total assets"
+                                  "Goodwill"
+                                  "Intangible assets"}))))
 
 (defn parse-income
   "Parse an income statement as issued by Morningstar.
@@ -78,7 +78,7 @@
   [income]
   (map #(assoc % :kind :amounts)
        (parse-morningstar income #(subvec % 1 (- (count %) 1))
-                          {"Revenue" :annual_sales})))
+                          #{"Revenue"})))
 
 (defn parse-keyratios
   "Parse a key ratios csv file as issued by Morningstar.
@@ -91,18 +91,18 @@
   (let [extract #(subvec % 1 (- (count %) 1))
         regex #"(Earnings Per Share|Book Value Per Share|Dividends|Shares Mil) ?(\w+)?"
         date-header (date-vec (extract (rows 2)))
-        keys-to-symbol {"Earnings Per Share" [:eps :per_share_amounts]
-                        "Book Value Per Share" [:reported_book_value :per_share_amounts]
-                        "Dividends" [:dividends :per_share_amounts]
-                        "Shares Mil" [:shares_outstanding :shares]}]
+        name-to-kind {"Earnings Per Share" :per_share_amounts
+                      "Book Value Per Share" :per_share_amounts
+                      "Dividends" :per_share_amounts
+                      "Shares Mil" :shares}]
     (flatten (for [record rows
                    :let [match (re-matches regex (record 0))
                          currency (get match 2)
                          name (get match 1)
-                         kind (second (keys-to-symbol name))
+                         kind (name-to-kind name)
                          fun (if (= kind :per_share_amounts)
                                #(assoc {}
-                                  :name (first (keys-to-symbol name))
+                                  :name (clojure.string/lower-case name)
                                   :amount %1
                                   :date %2
                                   :kind kind)
@@ -115,8 +115,8 @@
                (filter #(not (nil? (:amount %)))
                        (map fun
                             (if (= kind :per_share_amounts)
-                                  (money-vec (extract record) currency)
-                                  (map #(* 1e6 %) (double-vec (extract record))))
+                              (money-vec (extract record) currency)
+                              (map #(* 1e6 %) (double-vec (extract record))))
                             date-header))))))
 
 (defn parse-dir
