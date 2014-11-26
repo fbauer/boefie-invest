@@ -20,22 +20,27 @@
          ["Revenue" "1597" "1237" "1523" "1759" "1836" "1761"]]
         result (parse-income sample-input)]
     (is (= (count result) 5))
-    (is (= result
-           [{:name :annual_sales
+    (is (= [{:name :annual_sales
              :amount (as-money "1597000000" "EUR")
-             :date (date-time 2008 12 01)}
+             :date (date-time 2008 12 01)
+             :kind :amounts}
             {:name :annual_sales
              :amount (as-money "1237000000" "EUR")
-             :date (date-time 2009 12 01)}
+             :date (date-time 2009 12 01)
+             :kind :amounts}
             {:name :annual_sales
              :amount (as-money "1523000000" "EUR")
-             :date (date-time 2010 12 01)}
+             :date (date-time 2010 12 01)
+             :kind :amounts}
             {:name :annual_sales
              :amount (as-money "1759000000" "EUR")
-             :date (date-time 2011 12 01)}
+             :date (date-time 2011 12 01)
+             :kind :amounts}
             {:name :annual_sales
              :amount (as-money "1836000000" "EUR")
-             :date (date-time 2012 12 01)}]))))
+             :date (date-time 2012 12 01)
+             :kind :amounts}]
+           result))))
 
 (deftest test-parse-income-corner-cases
   (are [sample-input expected] (= (parse-income sample-input) expected)
@@ -63,7 +68,8 @@
         ["Revenue" "" "23" "" "" "" ""]]
        [{:name :annual_sales
          :amount (as-money "23000000" "GBP")
-         :date (date-time 2009 12 01)}]))
+         :date (date-time 2009 12 01)
+         :kind :amounts}]))
 
 (deftest test-parse-balance
   (let [sample-input
@@ -77,44 +83,57 @@
          ["Long-term debt" "2526" "3197"]
          ["Total liabilities" "12013" "11380"]]
         result (parse-balance sample-input)]
-    (is (= (count result) 12))
-    (is (= result
-           [{:amount (as-money "5884000000" "EUR")
+    (is (= 13 (count result)))
+    (is (= [{:kind :securities :name "OMV AG"}
+            {:amount (as-money "5884000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :current_assets}
+             :name :current_assets
+             :kind :amounts}
             {:amount (as-money "5622000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :current_assets}
+             :name :current_assets
+             :kind :amounts}
             {:amount (as-money "807000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :intangibles}
+             :name :intangibles
+             :kind :amounts}
             {:amount (as-money "812000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :intangibles}
+             :name :intangibles
+             :kind :amounts}
             {:amount (as-money "21376000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :total_assets}
+             :name :total_assets
+             :kind :amounts}
             {:amount (as-money "21415000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :total_assets}
+             :name :total_assets
+             :kind :amounts}
             {:amount (as-money "5816000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :current_liabilities}
+             :name :current_liabilities
+             :kind :amounts}
             {:amount (as-money "4732000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :current_liabilities}
+             :name :current_liabilities
+             :kind :amounts}
             {:amount (as-money "2526000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :long_term_debt}
+             :name :long_term_debt
+             :kind :amounts}
             {:amount (as-money "3197000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :long_term_debt}
+             :name :long_term_debt
+             :kind :amounts}
             {:amount (as-money "12013000000" "EUR")
              :date (date-time 2008 12 01)
-             :name :total_liabilities}
+             :name :total_liabilities
+             :kind :amounts}
             {:amount (as-money "11380000000" "EUR")
              :date (date-time 2009 12 01)
-             :name :total_liabilities}]))))
+             :name :total_liabilities
+             :kind :amounts}]
+           result))))
 
 
 (deftest test-parse-keyratios
@@ -128,30 +147,37 @@
          ["Book Value Per Share EUR" "11.02" "12.07" "13.20"]]
         result (parse-keyratios sample-input)]
     (is (= (count result) 8))
-    (is (= result [{:name :eps
-                    :amount (as-money "3.05" "EUR")
-                    :date (date-time 2008 12 01)}
-                   {:name :eps
-                    :amount (as-money "2.85" "EUR")
-                    :date (date-time 2009 12 01)}
-                   {:name :dividends
-                    :amount (as-money "0.38" "EUR")
-                    :date (date-time 2008 12 01)}
-                   {:name :dividends
-                    :amount (as-money "0.56" "EUR")
-                    :date (date-time 2009 12 01)}
-                   {:name :shares_outstanding
-                    :amount 4.0E7
-                    :date (date-time 2008 12 01)}
-                   {:name :shares_outstanding
-                    :amount 4.0E7
-                    :date (date-time 2009 12 01)}
-                   {:name :reported_book_value
-                    :amount (as-money "11.02" "EUR")
-                    :date (date-time 2008 12 01)}
-                   {:name :reported_book_value
-                    :amount (as-money "12.07" "EUR")
-                    :date (date-time 2009 12 01)}]))))
+    (is (= [{:name :eps
+             :amount (as-money "3.05" "EUR")
+             :date (date-time 2008 12 01)
+             :kind :per_share_amounts}
+            {:name :eps
+             :amount (as-money "2.85" "EUR")
+             :date (date-time 2009 12 01)
+             :kind :per_share_amounts}
+            {:name :dividends
+             :amount (as-money "0.38" "EUR")
+             :date (date-time 2008 12 01)
+             :kind :per_share_amounts}
+            {:name :dividends
+             :amount (as-money "0.56" "EUR")
+             :date (date-time 2009 12 01)
+             :kind :per_share_amounts}
+            {:amount 4.0E7
+             :date (date-time 2008 12 01)
+             :kind :shares}
+            {:amount 4.0E7
+             :date (date-time 2009 12 01)
+             :kind :shares}
+            {:name :reported_book_value
+             :amount (as-money "11.02" "EUR")
+             :date (date-time 2008 12 01)
+             :kind :per_share_amounts}
+            {:name :reported_book_value
+             :amount (as-money "12.07" "EUR")
+             :date (date-time 2009 12 01)
+             :kind :per_share_amounts}]
+           result))))
 
 (deftest test-parse-dir
   (let [my-file-seq (fn [_]
@@ -159,14 +185,15 @@
                            ["/root/2012-04-04/ignore-this"
                             "/root/2012-04-04/anisin Income Statement.csv"
                             "/root/2012-04-04/anisin Balance Sheet.csv"
+                            ;; inject a newer item here to test that
+                            ;; sorting works as intended
+                            "/root/2013-04-04/anisin Key Ratios.csv"
                             "/root/2012-04-04/anisin Key Ratios.csv"
                             "/root/2012-04-04/anotherisin Income Statement.csv"
                             "/root/2012-04-04/anotherisin Balance Sheet.csv"
-                            "/root/2013-04-04/anisin Key Ratios.csv"
                             "/root/ignore-this/anisin Key Ratios.csv"
                             "/root/ignore-this/foobar"]))]
-    (is (= (parse-dir "/root" my-file-seq)
-           [{:isin "anisin"
+    (is (= [{:isin "anisin"
              :type :incomestatement
              :file (io/file "/root/2012-04-04/anisin Income Statement.csv")
              :date_added (date-time 2012 04 04)}
@@ -189,9 +216,29 @@
             {:isin "anisin"
              :type :keyratios
              :file (io/file "/root/2013-04-04/anisin Key Ratios.csv")
-             :date_added (date-time 2013 04 04)}]))))
+             :date_added (date-time 2013 04 04)}]
+           (parse-dir "/root" my-file-seq)))))
 
 (deftest test-load-data
-  (doseq [result-record (load-data (resource "resources/morningstar"))]
-    (is (= (keys result-record)
-           [:name :amount :date :isin :date_added]))))
+  (let [result-records (load-data (resource "resources/morningstar"))
+        expected-types #{:isins :shares :securities
+                         :amounts :per_share_amounts}]
+    (doseq [result-record result-records]
+      (is (= 2 (count result-record)) "All records are pairs")
+      (is (contains? expected-types (first result-record))
+          (format "Type is one of %s"  expected-types))
+      (is (coll? (second result-record))
+          "The second item of each record is a collection")
+      (case (first result-record)
+        :isins (doseq [rec (second result-record)]
+                 (is (= [:isin] (keys rec))))
+        :securities (doseq [rec (second result-record)]
+                      (is (= [:name :isin :date_added] (keys rec))))
+        :shares (doseq [rec (second result-record)]
+                  (is (= [:amount :date :isin :date_added] (keys rec))))
+        :amounts (doseq [rec (second result-record)]
+                   (is (= [:name :amount :date :isin :date_added]
+                          (keys rec))))
+        :per_share_amounts (doseq [rec (second result-record)]
+                             (is (= [:name :amount :date :isin :date_added]
+                                    (keys rec))))))))

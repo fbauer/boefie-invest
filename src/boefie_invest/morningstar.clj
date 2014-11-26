@@ -48,16 +48,24 @@
                                :date %2)
                             (money-vec (extract record) currency) date-header))))))
 
+(defn parse-security
+  "Extract the name of a security form row 1, column 1 of a csv file."
+  [balance]
+  {:name (last (re-matches #"([^\(]+?) *\(.*" (first (first balance))))
+   :kind :securities})
+
 (defn parse-balance
   [balance]
-  (parse-morningstar balance #(subvec % 1 (count %))
-                     {"Total current assets" :current_assets
-                      "Total current liabilities" :current_liabilities
-                      "Long-term debt" :long_term_debt
-                      "Total liabilities" :total_liabilities
-                      "Total assets" :total_assets
-                      "Goodwill" :goodwill
-                      "Intangible assets" :intangibles}))
+  (cons (parse-security balance)
+        (map #(assoc % :kind :amounts)
+             (parse-morningstar balance #(subvec % 1 (count %))
+                                {"Total current assets" :current_assets
+                                 "Total current liabilities" :current_liabilities
+                                 "Long-term debt" :long_term_debt
+                                 "Total liabilities" :total_liabilities
+                                 "Total assets" :total_assets
+                                 "Goodwill" :goodwill
+                                 "Intangible assets" :intangibles}))))
 
 (defn parse-income
   "Parse an income statement as issued by Morningstar.
@@ -68,8 +76,9 @@
   :annual_sales, and :amount and :date give the revenue for a given
   year."
   [income]
-  (parse-morningstar income #(subvec % 1 (- (count %) 1))
-                     {"Revenue" :annual_sales}))
+  (map #(assoc % :kind :amounts)
+       (parse-morningstar income #(subvec % 1 (- (count %) 1))
+                          {"Revenue" :annual_sales})))
 
 (defn parse-keyratios
   "Parse a key ratios csv file as issued by Morningstar.
@@ -82,24 +91,32 @@
   (let [extract #(subvec % 1 (- (count %) 1))
         regex #"(Earnings Per Share|Book Value Per Share|Dividends|Shares Mil) ?(\w+)?"
         date-header (date-vec (extract (rows 2)))
-        keys-to-symbol {"Earnings Per Share" :eps
-                        "Book Value Per Share" :reported_book_value
-                        "Dividends" :dividends
-                        "Shares Mil" :shares_outstanding}]
+        keys-to-symbol {"Earnings Per Share" [:eps :per_share_amounts]
+                        "Book Value Per Share" [:reported_book_value :per_share_amounts]
+                        "Dividends" [:dividends :per_share_amounts]
+                        "Shares Mil" [:shares_outstanding :shares]}]
     (flatten (for [record rows
-                     :let [match (re-matches regex (record 0))
-                           currency (get match 2)
-                           name (get match 1)]
+                   :let [match (re-matches regex (record 0))
+                         currency (get match 2)
+                         name (get match 1)
+                         kind (second (keys-to-symbol name))
+                         fun (if (= kind :per_share_amounts)
+                               #(assoc {}
+                                  :name (first (keys-to-symbol name))
+                                  :amount %1
+                                  :date %2
+                                  :kind kind)
+                               #(assoc {}
+                                  :amount %1
+                                  :date %2
+                                  :kind kind))]
                      
-                     :when (and (> (count record) 2) match)]
+                   :when (and (> (count record) 2) match)]
                (filter #(not (nil? (:amount %)))
-                       (map #(assoc {}
-                               :name (keys-to-symbol name)
-                               :amount %1
-                               :date %2)
-                            (if currency
-                              (money-vec (extract record) currency)
-                              (map #(* 1e6 %) (double-vec (extract record))))
+                       (map fun
+                            (if (= kind :per_share_amounts)
+                                  (money-vec (extract record) currency)
+                                  (map #(* 1e6 %) (double-vec (extract record))))
                             date-header))))))
 
 (defn parse-dir
@@ -112,43 +129,56 @@
   Returns a seq of maps {:isin :type :file :date_added}, where :isin
   is an isin string, :type is one of :balancesheet, :incomestatement
   or :keyratios, file is a handle to the file and :date_added is a
-  datetime representation."
+  datetime representation.
+
+The seq returned is sorted by :date_added. Older data comes before newer data."
+  
   ([datadir]
      (parse-dir datadir file-seq))
   ;; second entry point is for testing purposes
   ([datadir iterator]
-     (for [f (iterator (io/file datadir))
-           :let [filename (.getName f)
-                 dirname (.getName (.getParentFile f))
-                 parts (clojure.string/split filename #" ")
-                 isin (first parts)
-                 date-added (try
-                              (parse (formatter "yyyy-MM-dd") dirname)
-                              (catch Exception e))]
-           :when (and (.endsWith filename ".csv")
-                      (= 3 (count parts))
-                      (contains? #{["Balance" "Sheet.csv"]
-                                   ["Income" "Statement.csv"]
-                                   ["Key" "Ratios.csv"]} (subvec parts 1))
-                      date-added)]
-       {:isin isin :type ({"Balance" :balancesheet
-                           "Income" :incomestatement
-                           "Key" :keyratios} (parts 1))
-        :file f :date_added date-added})))
+     (sort-by :date_added
+      (for [f (iterator (io/file datadir))
+            :let [filename (.getName f)
+                  dirname (.getName (.getParentFile f))
+                  parts (clojure.string/split filename #" ")
+                  isin (first parts)
+                  date-added (try
+                               (parse (formatter "yyyy-MM-dd") dirname)
+                               (catch Exception e))]
+            :when (and (.endsWith filename ".csv")
+                       (= 3 (count parts))
+                       (contains? #{["Balance" "Sheet.csv"]
+                                    ["Income" "Statement.csv"]
+                                    ["Key" "Ratios.csv"]} (subvec parts 1))
+                       date-added)]
+        {:isin isin :type ({"Balance" :balancesheet
+                            "Income" :incomestatement
+                            "Key" :keyratios} (parts 1))
+         :file f :date_added date-added}))))
 
 
 (defn load-data
-  "Load all stock information from data-dir."
+  "Load all stock information from data-dir.
+
+Returns a seq of pairs [kind values], where kind is one of
+:isins, :securities, :shares, :amounts, :per_share_amounts and values
+is a list of maps which correspond to the data model defined in
+boefie-invest.db.schema / boefie-invest.db.core."
+
   [data-dir]
   (apply concat
-   (for [file-info (parse-dir data-dir)
-         :let [csv-data (vec (parse-csv (slurp (:file file-info))))
-               isin-date (select-keys file-info [:date_added :isin])]]
-     (map #(merge isin-date %)
-          (case (:type file-info)
-            :balancesheet (parse-balance csv-data)
-            :incomestatement (parse-income csv-data)
-            :keyratios (parse-keyratios csv-data))))))
-
-
-
+         (for [file-info (parse-dir data-dir)
+               :let [csv-data (vec (parse-csv (slurp (:file file-info))))
+                     isin (select-keys file-info [:isin])
+                     isin-date (select-keys file-info [:date_added :isin])]]
+           (cons
+            [:isins [isin]]
+            
+            (map (fn [a]
+                   (vector (first a) (map #(dissoc % :kind) (second a))))
+                 (group-by :kind (map #(merge isin-date %)
+                                      (case (:type file-info)
+                                        :balancesheet (parse-balance csv-data)
+                                        :incomestatement (parse-income csv-data)
+                                        :keyratios (parse-keyratios csv-data)))))))))
