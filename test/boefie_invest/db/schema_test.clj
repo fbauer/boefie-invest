@@ -31,7 +31,7 @@
 (deftest test-init-db
   (doseq [test-conn connections]
     (if (= (:subprotocol test-conn) "sqlite")
-      (is (= (jdbc/query test-conn ["PRAGMA foreign_keys;"]) '({:foreign_keys 1}))))
+      (is (= '({:foreign_keys 1}) (jdbc/query test-conn ["PRAGMA foreign_keys;"]))))
     (let [row {:name "revenue" :isin "de1234567890" :date_added (date-time 2013 01 01 13 59 12)}]
       (do (add-security test-conn row)
           (let [result (vec (db-read-all test-conn))]
@@ -39,17 +39,17 @@
             (is (= [(assoc row :id 1)] result)))))))
 
 (deftest test-constraints
-  "It is not allowed to leave out either one of name, isin or
+  (testing "It is not allowed to leave out either one of name, isin or
 date_added when adding a new security to the database"
-  (doseq [test-conn connections]
-    (are [row] (thrown? SQLException (add-security test-conn row))
-         {:name "revenue"}
-         {:isin "de1234567890"}
-         {:name "revenue" :isin "de1234567890"})))
+    (doseq [test-conn connections]
+      (are [row] (thrown? SQLException (add-security test-conn row))
+           {:name "revenue"}
+           {:isin "de1234567890"}
+           {:name "revenue" :isin "de1234567890"}))))
 
 (deftest test-db-empty
   (doseq [test-conn connections]
-    (is (= (db-read-all test-conn) []))))
+    (is (= [] (db-read-all test-conn)))))
 
 (deftest uniqueness-constraint
   (doseq [test-conn connections]

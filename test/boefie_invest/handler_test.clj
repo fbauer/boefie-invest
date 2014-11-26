@@ -1,13 +1,13 @@
 (ns boefie-invest.handler-test
-  (:use clojure.test
-        ring.mock.request
-        boefie-invest.handler))
+  (:require [clojure.test :refer :all]
+            [ring.mock.request :refer :all]
+            [boefie-invest.handler :refer :all]))
 
 (deftest test-app
   (testing "main route"
     (let [response (app (request :get "/"))]
       (is (= 200 (:status response)))))
-    (testing "home route"
+  (testing "home route"
     (let [response (app (request :get "/about"))]
       (is (= 200 (:status response)))))
 

@@ -8,8 +8,8 @@
             [boefie-invest.bigmoney :refer [ as-money]]))
 
 (deftest test-as-double
-  (is (= (as-double "1.23") 1.23))
-  (is (= (as-double "1,234.56") 1234.56))
+  (is (= 1.23 (as-double "1.23")))
+  (is (= 1234.56 (as-double "1,234.56")))
   (is (Double/isNaN (as-double ""))))
 
 (deftest test-parse-income
@@ -19,8 +19,9 @@
           "2008-12" "2009-12" "2010-12" "2011-12" "2012-12" "TTM"]
          ["Revenue" "1597" "1237" "1523" "1759" "1836" "1761"]]
         result (parse-income sample-input)]
-    (is (= (count result) 5))
-    (is (= [{:name :annual_sales
+    (is (= 5 (count result)))
+    (is (= result
+           [{:name :annual_sales
              :amount (as-money "1597000000" "EUR")
              :date (date-time 2008 12 01)
              :kind :amounts}
@@ -39,11 +40,10 @@
             {:name :annual_sales
              :amount (as-money "1836000000" "EUR")
              :date (date-time 2012 12 01)
-             :kind :amounts}]
-           result))))
+             :kind :amounts}]))))
 
 (deftest test-parse-income-corner-cases
-  (are [sample-input expected] (= (parse-income sample-input) expected)
+  (are [sample-input expected] (= expected (parse-income sample-input))
        ;; Truncated "Revenue" record
        [["BARCLAYS PLC (BCY) CashFlowFlag INCOME STATEMENT"]
         ["Fiscal year ends in December. GBP in millions except per share data."
@@ -146,8 +146,9 @@
          ["Shares Mil"  "40" "40" "40"]
          ["Book Value Per Share EUR" "11.02" "12.07" "13.20"]]
         result (parse-keyratios sample-input)]
-    (is (= (count result) 8))
-    (is (= [{:name :eps
+    (is (= 8 (count result)))
+    (is (= result
+           [{:name :eps
              :amount (as-money "3.05" "EUR")
              :date (date-time 2008 12 01)
              :kind :per_share_amounts}
@@ -176,8 +177,7 @@
             {:name :reported_book_value
              :amount (as-money "12.07" "EUR")
              :date (date-time 2009 12 01)
-             :kind :per_share_amounts}]
-           result))))
+             :kind :per_share_amounts}]))))
 
 (deftest test-parse-dir
   (let [my-file-seq (fn [_]

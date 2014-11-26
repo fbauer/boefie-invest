@@ -1,9 +1,10 @@
 (ns boefie-invest.db.core
-  (:use korma.core
-        [korma.db :only (defdb)])
-  (:require [boefie-invest.db.schema :as schema]
-            [boefie-invest.bigmoney :refer [as-money]]
-            [clj-time.coerce :refer [to-sql-time to-date-time]])
+  (:require
+   [korma.core :refer :all]
+   [korma.db :refer [defdb]]
+   [boefie-invest.db.schema :as schema]
+   [boefie-invest.bigmoney :refer [as-money]]
+   [clj-time.coerce :refer [to-sql-time to-date-time]])
   (:import [org.joda.money CurrencyUnit]
            [org.joda.money BigMoney]
            [java.sql SQLException]))

@@ -1,7 +1,7 @@
 (ns boefie-invest.repl
-  (:use boefie-invest.handler
-        ring.server.standalone
-        [ring.middleware file-info file]))
+  (:use [ring.middleware file-info file])
+  (:require [boefie-invest.handler :refer :all]
+            [ring.server.standalone :refer :all]))
 
 (defonce server (atom nil))
 

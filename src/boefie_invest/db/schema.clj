@@ -21,7 +21,7 @@
               :make-pool? true
               })
 
-(def db-spec
+(def db-spec2
   {:classname "org.sqlite.JDBC"
    :subprotocol "sqlite"
    :subname "database.db"
