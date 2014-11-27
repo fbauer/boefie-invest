@@ -21,12 +21,6 @@
               :make-pool? true
               })
 
-(def db-spec2
-  {:classname "org.sqlite.JDBC"
-   :subprotocol "sqlite"
-   :subname "database.db"
-   :foreign_keys 1})
-
 ;; ## Table definitions
 
 (def table-definitions

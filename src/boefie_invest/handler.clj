@@ -3,6 +3,7 @@
             [boefie-invest.routes.home :refer [home-routes]]
             [boefie-invest.middleware :refer [load-middleware]]
             [boefie-invest.session-manager :as session-manager]
+            [boefie-invest.db.schema :as schema]
             [noir.response :refer [redirect]]
             [noir.util.middleware :refer [app-handler]]
             [ring.middleware.defaults :refer [site-defaults]]
@@ -36,6 +37,8 @@
     {:path "boefie_invest.log" :max-size (* 512 1024) :backlog 10})
 
   (if (env :dev) (parser/cache-off!))
+  (when-not (schema/initialized?)
+    (schema/init-db schema/db-spec))
   ;;start the expired session cleanup job
   (cronj/start! session-manager/cleanup-job)
   (timbre/info "\n-=[ boefie-invest started successfully"
