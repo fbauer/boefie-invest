@@ -38,6 +38,7 @@
 
   (if (env :dev) (parser/cache-off!))
   (when-not (schema/initialized?)
+    (timbre/debug "Initializing database schema")
     (schema/init-db schema/db-spec))
   ;;start the expired session cleanup job
   (cronj/start! session-manager/cleanup-job)
