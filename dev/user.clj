@@ -10,6 +10,7 @@
    [clojure.set :as set]
    [clojure.string :as str]
    [clojure.test :as test]
+   [lobos.connectivity]
    [clojure.tools.namespace.repl :refer (refresh refresh-all)]))
 
 (def system
@@ -26,6 +27,7 @@
   #'system."
   []
   ;; TODO
+  (swap! lobos.connectivity/global-connections {})
   )
 
 (defn start

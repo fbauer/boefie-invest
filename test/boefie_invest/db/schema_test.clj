@@ -1,7 +1,8 @@
 (ns boefie-invest.db.schema-test
   (:require [clojure.test :refer :all]
             [boefie-invest.db.schema :refer :all]
-            [boefie-invest.db.fixtures :refer [database connections]]
+            [boefie-invest.db.fixtures :refer [database connections
+                                               test-db-name]]
             [boefie-invest.bigmoney :refer [as-money]]
             [clojure.java.jdbc :as jdbc]
             [clj-time.core :refer [date-time]]
@@ -19,7 +20,7 @@
                       (re-find #"UNIQUE constraint" (.getMessage e))))
            (throw e)))))
 
-(defn add-security [db-spec sec]
+(defn add-security [sec]
   (do (try-insert! db-spec :isins {:isin (sec :isin)})
       (try-insert! db-spec :securities (assoc sec :date_added (to-sql-time (:date_added sec))))))
 
@@ -49,7 +50,8 @@ date_added when adding a new security to the database"
 
 (deftest test-db-empty
   (doseq [test-conn connections]
-    (is (= [] (db-read-all test-conn)))))
+    (lobos.connectivity/with-connection (test-db-name test-conn)
+      (is (= [] (db-read-all test-conn))))))
 
 (deftest uniqueness-constraint
   (doseq [test-conn connections]

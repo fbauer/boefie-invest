@@ -1,16 +1,18 @@
 (ns boefie-invest.db.fixtures
   (:require [boefie-invest.db.schema :refer :all]
-            [clojure.java.io :refer [resource]])
+            [clojure.java.io :refer [resource]]
+            [lobos.connectivity :refer :all])
   (:import [java.sql BatchUpdateException]))
 
 (def test-conn-sqlite {:classname "org.sqlite.JDBC"
                        :subprotocol "sqlite"
-                       :subname "testdb.sqlite"
+                       :subname "file::memory:?cache=shared"
+                       :make-pool? true
                        :foreign_keys 1})
 
 (def test-conn-h2 {:classname "org.h2.Driver"
                    :subprotocol "h2"
-                   :subname (str (resource "resources/") "testdb.h2")
+                   :subname "mem:testdb"
                    :user "sa"
                    :password ""
                    :make-pool? true
@@ -18,26 +20,31 @@
                             :fields clojure.string/upper-case}})
 
 (def connections [test-conn-sqlite
-                  test-conn-h2  ; FIXME: correct sql for h2 database
-                  ])
+                  test-conn-h2])
+
+;; copied from the lobos test suite
+(defn test-db-name [db-spec]
+  (keyword (:subprotocol db-spec)))
 
 (defn setup-dbs
   [connections]
-  (doseq [conn connections]
-    (init-db conn)))
+  (doseq [db-spec connections
+          :let [connection-name (test-db-name db-spec)]]
+    (if-not (connection-name @global-connections)
+      (open-global connection-name db-spec))
+    (init-db connection-name)))
 
 (defn teardown-dbs
   [connections]
-  (doseq [conn connections]
+  (doseq [db-spec connections]
     (try
-      (kill-db conn)
-      (catch BatchUpdateException e (println e)))))
+      (kill-db (test-db-name db-spec))
+      (catch BatchUpdateException e (println e)))
+    (close-global ((test-db-name db-spec) @global-connections))))
 
 (defn database [f]
   (do
-    (teardown-dbs connections)
-    (try (do (setup-dbs connections)
-             (f))
-         (finally
-           (teardown-dbs connections)))))
+    (do (setup-dbs connections)
+        (f)
+        (teardown-dbs connections))))
 
