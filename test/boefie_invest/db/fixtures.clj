@@ -40,7 +40,7 @@
     (try
       (kill-db (test-db-name db-spec))
       (catch BatchUpdateException e (println e)))
-    (close-global ((test-db-name db-spec) @global-connections))))
+    (close-global (test-db-name db-spec))))
 
 (defn database [f]
   (do
