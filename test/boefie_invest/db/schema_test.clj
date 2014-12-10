@@ -20,7 +20,7 @@
                       (re-find #"UNIQUE constraint" (.getMessage e))))
            (throw e)))))
 
-(defn add-security [sec]
+(defn add-security [db-spec sec]
   (do (try-insert! db-spec :isins {:isin (sec :isin)})
       (try-insert! db-spec :securities (assoc sec :date_added (to-sql-time (:date_added sec))))))
 
