@@ -2,6 +2,10 @@
   (:require [clojure.java.io :as io]
             [clojure.data :refer :all]
             [clojure.test :refer :all]
+            [clojure.test.check :as tc]
+            [clojure.test.check.generators :as gen]
+            [clojure.test.check.properties :as prop]
+            [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.java.io :refer [resource]]
             [clj-time.core :refer [date-time]]
             [boefie-invest.morningstar :refer :all]
@@ -242,3 +246,11 @@
         :per_share_amounts (doseq [rec (second result-record)]
                              (is (= [:name :amount :date :isin :date_added]
                                     (keys rec))))))))
+
+(defspec check-parse-security
+  100 
+  (prop/for-all [name (gen/vector (gen/vector gen/string 1) 1)]
+                (println name)
+                (is (= {:name ((name 0) 0)
+                        :kind :securities}
+                       (parse-security name)))))

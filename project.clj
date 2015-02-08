@@ -41,6 +41,7 @@
              :dev {:dependencies [[ring-mock "0.1.5"]
                                   [ring/ring-devel "1.3.1"]
                                   [pjstadig/humane-test-output "0.6.0"]
+                                  [org.clojure/test.check "0.6.1"]
                                   [org.clojure/tools.namespace "0.2.7"]]
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]
