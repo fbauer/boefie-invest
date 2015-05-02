@@ -51,8 +51,12 @@
 (defn parse-security
   "Extract the name of a security form row 1, column 1 of a csv file."
   [balance]
-  {:name (last (re-matches #"([^\(]+?) *\(.*" (first (first balance))))
-   :kind :securities})
+  (let [raw-name (first (first balance))]
+    
+    {:name (if (empty?  raw-name)
+             ""
+             (last (re-matches #"([\S\s]*?) *\([^()]*\)[^()]*" raw-name)))
+     :kind :securities}))
 
 (defn parse-balance
   [balance]

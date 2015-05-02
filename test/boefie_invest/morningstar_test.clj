@@ -2,14 +2,16 @@
   (:require [clojure.java.io :as io]
             [clojure.data :refer :all]
             [clojure.test :refer :all]
+            [clojure.string :as string]
             [clojure.test.check :as tc]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer [defspec]]
             [clojure.java.io :refer [resource]]
             [clj-time.core :refer [date-time]]
+            [clojure-csv.core :refer [parse-csv]]
             [boefie-invest.morningstar :refer :all]
-            [boefie-invest.bigmoney :refer [ as-money]]))
+            [boefie-invest.bigmoney :refer [as-money]]))
 
 (deftest test-as-double
   (is (= 1.23 (as-double "1.23")))
@@ -247,10 +249,39 @@
                              (is (= [:name :amount :date :isin :date_added]
                                     (keys rec))))))))
 
+(deftest parse-csv-corner-cases
+  ;; Document how parse-csv behaves in corner cases to show why the
+  ;; tests below behave the way they do in these corner cases
+
+  ;; empty string
+  ;;
+  ;; An empty string results in an empty seq
+  (is (empty? (parse-csv "")))
+
+  ;; empty first line
+  ;;
+  ;; An empty line results in a vector with an empty string as first
+  ;; element.
+  (is (= [[""]] (parse-csv "\n"))))
+
+(defspec parse-csv-never-generates-empty-vecs
+  ;; a probabilistic test to show that parse-csv never generates empty
+  ;; vectors as rows
+  100
+  (prop/for-all [csv-data gen/string]
+                (not-any? #{[]} (parse-csv csv-data))))
+
+(def name-gen (gen/fmap #(str % " (abc)" ) gen/string))
+
 (defspec check-parse-security
-  100 
-  (prop/for-all [name (gen/vector (gen/vector gen/string 1) 1)]
-                (println name)
-                (is (= {:name ((name 0) 0)
-                        :kind :securities}
-                       (parse-security name)))))
+  100
+  (prop/for-all [contains-name (gen/tuple
+                                (gen/tuple name-gen gen/string gen/string)
+                                (gen/vector gen/string)
+                                (gen/vector gen/string)
+                                (gen/vector gen/string))]
+                (= {:name (-> contains-name first first
+                              (string/replace #" *\(abc\)" ""))
+                    :kind :securities}
+                   (parse-security contains-name))))
+
