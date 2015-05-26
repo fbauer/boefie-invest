@@ -21,11 +21,10 @@
               :make-pool? true
               })
 
-(def db-spec2
-  {:classname "org.sqlite.JDBC"
-   :subprotocol "sqlite"
-   :subname "database.db"
-   :foreign_keys 1})
+;; copied from the lobos test suite
+(defn db-name [db-spec]
+  (keyword (:subprotocol db-spec)))
+
 
 ;; ## Table definitions
 
@@ -103,8 +102,8 @@ representation in iso datetime format and utc timezone."
           (varchar :isin 12 :not-null  [:refer :isins :isin])
           (varchar :name  200 :not-null)
           (varchar :currency  3 :not-null)
-          (integer :amount  :not-null)
-          (integer :scale  :not-null)
+          (integer :amount :not-null)
+          (integer :scale :not-null)
           (timestamp :date :not-null)
           (timestamp :date_added :not-null (default (now)))
           (unique [:isin :name :currency :amount :date]))])
@@ -112,15 +111,27 @@ representation in iso datetime format and utc timezone."
 (defn init-db
   "Create all tables. Assumes that none of the tables exists before.
    Table definitions are taken from the table-definitions var."
+  [connection-name]
+  (assert (keyword? connection-name))
+  (lobos.connectivity/with-connection connection-name
+    (doseq [table-def table-definitions]
+      (create table-def))))
+
+(defn setup-db
+  "Open global connection to database and create all tables."
   [db-spec]
-  (doseq [table-def table-definitions]
-    (create db-spec table-def)))
+  (let [connection-name (db-name db-spec)]
+    (if-not (connection-name @lobos.connectivity/global-connections)
+      (lobos.connectivity/open-global connection-name db-spec))
+    (init-db connection-name)))
+
 
 (defn kill-db
   "Drop all tables"
-  [db-spec]
-  (doseq [table-name
-          [:amounts :per_share_amounts :shares :securities :isins]]
-    (try (drop db-spec (table table-name)) (catch java.sql.SQLException e))))
-
-
+  [connection-name]
+  (assert (keyword? connection-name))
+  (lobos.connectivity/with-connection connection-name
+    (doseq [table-name
+            [:amounts :per_share_amounts :shares :securities :isins]]
+      (try (drop (table table-name))
+           (catch java.sql.SQLException e (println e))))))

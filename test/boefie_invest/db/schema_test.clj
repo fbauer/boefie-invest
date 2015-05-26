@@ -49,7 +49,8 @@ date_added when adding a new security to the database"
 
 (deftest test-db-empty
   (doseq [test-conn connections]
-    (is (= [] (db-read-all test-conn)))))
+    (lobos.connectivity/with-connection (db-name test-conn)
+      (is (= [] (db-read-all test-conn))))))
 
 (deftest uniqueness-constraint
   (doseq [test-conn connections]

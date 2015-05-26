@@ -9,7 +9,7 @@
            [org.joda.money BigMoney]
            [java.sql SQLException]))
 
-;;(defdb db schema/db-spec)
+(defdb db schema/db-spec)
 
 (defentity isins
   (pk :isin))
@@ -68,9 +68,7 @@
 
 (defmulti select-all
   "Select all rows from the given table.
-
 This multimethod returns sensible default columns."
-  
    :table)
 
 (defmethod select-all "isins"
@@ -116,3 +114,6 @@ Items that are already in the table are ignored"
              (throw e))))))
 
          
+(defn get-securities
+  []
+  (select-all securities))

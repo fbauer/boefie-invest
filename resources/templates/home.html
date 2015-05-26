@@ -10,5 +10,15 @@
     <div class="span9">
     {{content|safe}}
     </div>
+    <div class="span8">    
+      <h2>Securities</h2>
+      <ol>
+      {% for item in securities %}
+        <li>
+          <p>{{item.name}} {{item.isin}}</p>
+        </li>
+      {% endfor %}
+      </ol>
+    </div>
   </div>
 {% endblock %}
