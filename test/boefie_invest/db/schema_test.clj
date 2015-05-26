@@ -1,8 +1,7 @@
 (ns boefie-invest.db.schema-test
   (:require [clojure.test :refer :all]
             [boefie-invest.db.schema :refer :all]
-            [boefie-invest.db.fixtures :refer [database connections
-                                               test-db-name]]
+            [boefie-invest.db.fixtures :refer [database connections]]
             [boefie-invest.bigmoney :refer [as-money]]
             [clojure.java.jdbc :as jdbc]
             [clj-time.core :refer [date-time]]
@@ -50,7 +49,7 @@ date_added when adding a new security to the database"
 
 (deftest test-db-empty
   (doseq [test-conn connections]
-    (lobos.connectivity/with-connection (test-db-name test-conn)
+    (lobos.connectivity/with-connection (db-name test-conn)
       (is (= [] (db-read-all test-conn))))))
 
 (deftest uniqueness-constraint

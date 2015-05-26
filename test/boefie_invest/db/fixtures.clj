@@ -15,36 +15,27 @@
                    :subname "mem:testdb"
                    :user "sa"
                    :password ""
-                   :make-pool? true
-                   :naming {:keys clojure.string/lower-case
-                            :fields clojure.string/upper-case}})
+                   :make-pool? true})
 
 (def connections [test-conn-sqlite
                   test-conn-h2])
 
-;; copied from the lobos test suite
-(defn test-db-name [db-spec]
-  (keyword (:subprotocol db-spec)))
-
 (defn setup-dbs
   [connections]
-  (doseq [db-spec connections
-          :let [connection-name (test-db-name db-spec)]]
-    (if-not (connection-name @global-connections)
-      (open-global connection-name db-spec))
-    (init-db connection-name)))
+  (doseq [db-spec connections]
+    (setup-db db-spec)))
 
 (defn teardown-dbs
   [connections]
   (doseq [db-spec connections]
     (try
-      (kill-db (test-db-name db-spec))
+      (kill-db (db-name db-spec))
       (catch BatchUpdateException e (println e)))
-    (close-global (test-db-name db-spec))))
+    (close-global (db-name db-spec))))
 
-(defn database [f]
-  (do
-    (do (setup-dbs connections)
-        (f)
-        (teardown-dbs connections))))
+(defn database
+  [f]
+  (do (setup-dbs connections)
+      (f)
+      (teardown-dbs connections)))
 

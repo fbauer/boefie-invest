@@ -21,6 +21,11 @@
               :make-pool? true
               })
 
+;; copied from the lobos test suite
+(defn db-name [db-spec]
+  (keyword (:subprotocol db-spec)))
+
+
 ;; ## Table definitions
 
 (def table-definitions
@@ -111,6 +116,15 @@ representation in iso datetime format and utc timezone."
   (lobos.connectivity/with-connection connection-name
     (doseq [table-def table-definitions]
       (create table-def))))
+
+(defn setup-db
+  "Open global connection to database and create all tables."
+  [db-spec]
+  (let [connection-name (db-name db-spec)]
+    (if-not (connection-name @lobos.connectivity/global-connections)
+      (lobos.connectivity/open-global connection-name db-spec))
+    (init-db connection-name)))
+
 
 (defn kill-db
   "Drop all tables"
