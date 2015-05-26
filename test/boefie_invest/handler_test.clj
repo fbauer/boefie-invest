@@ -1,7 +1,7 @@
 (ns boefie-invest.handler-test
   (:require [clojure.test :refer :all]
             [ring.mock.request :refer :all]
-            [boefie-invest.db.fixtures :refer [database connections]]
+            [boefie-invest.db.fixtures :refer [database connections with-connection]]
             [noir.io :as io]
             [korma.db :refer [default-connection create-db]]
             [boefie-invest.handler :refer :all]))
@@ -14,9 +14,7 @@
     ;; initializes the database already. 
     (with-redefs [boefie-invest.db.schema/initialized? (fn [] true)]
       ;; swap the lobos db connection
-      (lobos.connectivity/with-connection conn
-        ;; and also the korma db connection
-        (default-connection (create-db conn))
+      (with-connection conn
         (init)
         (testing "main route"
           (let [response (app (request :get "/"))]

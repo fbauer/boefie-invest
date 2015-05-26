@@ -1,7 +1,7 @@
 (ns boefie-invest.db.fixtures
   (:require [boefie-invest.db.schema :refer :all]
             [clojure.java.io :refer [resource]]
-            [lobos.connectivity :refer :all])
+            [lobos.connectivity :refer [close-global]])
   (:import [java.sql BatchUpdateException]))
 
 (def test-conn-sqlite {:classname "org.sqlite.JDBC"
@@ -39,3 +39,11 @@
       (f)
       (teardown-dbs connections)))
 
+(defmacro with-connection
+  "Evaluate body in the context of a new connection to a database
+  given as db spec. Ensure that the proper connection is used both for
+  lobos and sqlkorma."
+  [connection-info & body]
+  `(lobos.connectivity/with-connection ~connection-info
+     (korma.db/with-db ~connection-info
+       ~@body)))
